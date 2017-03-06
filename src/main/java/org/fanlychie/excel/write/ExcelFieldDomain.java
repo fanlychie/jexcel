@@ -1,10 +1,10 @@
 package org.fanlychie.excel.write;
 
 /**
- * 字段域
+ * 字段域, 用于转换注解
  * Created by fanlychie on 2017/3/5.
  */
-public class FieldDomain {
+public class ExcelFieldDomain {
 
     /**
      * 单元格索引
@@ -38,6 +38,18 @@ public class FieldDomain {
      * 字段名称
      */
     private String field;
+
+    /**
+     * 字段类型
+     */
+    private Class<?> type;
+
+    /**
+     * 外部不可访问
+     */
+    ExcelFieldDomain() {
+
+    }
 
     public int getIndex() {
         return index;
@@ -77,6 +89,14 @@ public class FieldDomain {
 
     public void setField(String field) {
         this.field = field;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public void setType(Class<?> type) {
+        this.type = type;
     }
 
 }
