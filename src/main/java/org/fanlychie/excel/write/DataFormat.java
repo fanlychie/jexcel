@@ -1,8 +1,6 @@
 package org.fanlychie.excel.write;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 数据格式
@@ -11,14 +9,29 @@ import java.util.Map;
 public final class DataFormat {
 
     /**
-     * 缺省的类型数据格式
+     * 缺省的文本格式
      */
-    static final String DEFAULT_TYPE_DATA_FORMAT = "GENERAL";
+    static final String STRING_FORMAT = "@";
 
     /**
-     * 默认的数据格式表
+     * 缺省的整型格式
      */
-    private static final Map<Class<?>, String> DEFAULT_DATA_FORMAT = new HashMap<>();
+    private static final String INTEGER_FORMAT = "0";
+
+    /**
+     * 缺省的小数格式
+     */
+    private static final String DECIMAL_FORMAT = "0.00";
+
+    /**
+     * 缺省的日期格式
+     */
+    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    /**
+     * 缺省的类型数据格式
+     */
+    private static final String DEFAULT_TYPE_DATA_FORMAT = STRING_FORMAT;
 
     // 私有化构造
     private DataFormat() {
@@ -32,23 +45,19 @@ public final class DataFormat {
      * @return 返回参数类型对应的数据格式
      */
     public static String getDefault(Class<?> type) {
-        String format = DEFAULT_DATA_FORMAT.get(type);
-        return format == null ? DEFAULT_TYPE_DATA_FORMAT : format;
-    }
-
-    static {
-        DEFAULT_DATA_FORMAT.put(Short.TYPE, "0");
-        DEFAULT_DATA_FORMAT.put(Short.class, "0");
-        DEFAULT_DATA_FORMAT.put(Integer.TYPE, "0");
-        DEFAULT_DATA_FORMAT.put(Integer.class, "0");
-        DEFAULT_DATA_FORMAT.put(Long.TYPE, "0");
-        DEFAULT_DATA_FORMAT.put(Long.class, "0");
-        DEFAULT_DATA_FORMAT.put(Float.TYPE, "0.00");
-        DEFAULT_DATA_FORMAT.put(Float.class, "0.00");
-        DEFAULT_DATA_FORMAT.put(Double.TYPE, "0.00");
-        DEFAULT_DATA_FORMAT.put(Double.class, "0.00");
-        DEFAULT_DATA_FORMAT.put(String.class, "GENERAL");
-        DEFAULT_DATA_FORMAT.put(Date.class, "yyyy-MM-dd HH:mm:ss");
+        if (type == Short.TYPE || type == Short.class || type == Integer.TYPE || type == Integer.class || type == Long.TYPE || type == Long.class) {
+            return INTEGER_FORMAT;
+        }
+        if (type == Float.TYPE || type == Float.class || type == Double.TYPE || type == Double.class) {
+            return DECIMAL_FORMAT;
+        }
+        if (type == String.class) {
+            return STRING_FORMAT;
+        }
+        if (type == Date.class) {
+            return DATE_FORMAT;
+        }
+        return DEFAULT_TYPE_DATA_FORMAT;
     }
 
 }

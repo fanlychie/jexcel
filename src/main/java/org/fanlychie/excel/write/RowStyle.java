@@ -13,57 +13,57 @@ public class RowStyle {
     /**
      * 行的索引值
      */
-    private int index;
+    private Integer index;
 
     /**
      * 行的高度
      */
-    private int height;
+    private Integer height;
 
     /**
      * 水平方向对齐方式
      */
-    private short alignment;
+    private Short alignment;
 
     /**
      * 垂直方向对齐方式
      */
-    private short verticalAlignment;
+    private Short verticalAlignment;
 
     /**
      * 是否自动换行
      */
-    private boolean wrapText;
+    private Boolean wrapText;
 
     /**
      * 字体大小
      */
-    private int fontSize;
+    private Integer fontSize;
 
     /**
      * 字体颜色
      */
-    private short fontColor;
+    private Short fontColor;
 
     /**
      * 边框
      */
-    private short border;
+    private Short border;
 
     /**
      * 边框颜色
      */
-    private short borderColor;
+    private Short borderColor;
 
     /**
      * 背景颜色
      */
-    private short backgroundColor;
+    private Short backgroundColor;
 
     /**
-     * 行单元格样式
+     * 行数据格式
      */
-    private CellStyle cellStyle;
+    private String format;
 
     /**
      * 设置行的起始索引
@@ -142,11 +142,23 @@ public class RowStyle {
     }
 
     /**
+     * 设置行数据格式
+     *
+     * @param format 行数据格式
+     */
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    /**
      * 获取行索引
      *
      * @return 返回行的索引值
      */
     int getIndex() {
+        if (index == null) {
+            throw new NullPointerException();
+        }
         return index;
     }
 
@@ -156,6 +168,9 @@ public class RowStyle {
      * @return 返回行的高度
      */
     int getHeight() {
+        if (height == null) {
+            throw new NullPointerException();
+        }
         return height;
     }
 
@@ -166,33 +181,35 @@ public class RowStyle {
      * @return 返回单元格样式
      */
     CellStyle getCellStyle(XSSFWorkbook workbook) {
-        return getCellStyle(workbook, false);
-    }
-
-    /**
-     * 获取行的单元格样式
-     *
-     * @param workbook 工作薄
-     * @param recreate 重新创建
-     * @return 返回单元格样式
-     */
-    CellStyle getCellStyle(XSSFWorkbook workbook, boolean recreate) {
-        if (cellStyle == null || recreate) {
-            cellStyle = workbook.createCellStyle();
+        CellStyle cellStyle = workbook.createCellStyle();
+        if (alignment != null) {
             cellStyle.setAlignment(alignment);
+        }
+        if (verticalAlignment != null) {
             cellStyle.setVerticalAlignment(verticalAlignment);
+        }
+        if (fontSize != null && fontColor != null) {
             cellStyle.setFont(createFont(workbook));
+        }
+        if (wrapText != null) {
             cellStyle.setWrapText(wrapText);
-            cellStyle.setBorderBottom(border);
-            cellStyle.setBorderLeft(border);
-            cellStyle.setBorderRight(border);
+        }
+        if (border != null && borderColor != null) {
             cellStyle.setBorderTop(border);
-            cellStyle.setBottomBorderColor(borderColor);
-            cellStyle.setLeftBorderColor(borderColor);
-            cellStyle.setRightBorderColor(borderColor);
             cellStyle.setTopBorderColor(borderColor);
+            cellStyle.setBorderLeft(border);
+            cellStyle.setLeftBorderColor(borderColor);
+            cellStyle.setBorderRight(border);
+            cellStyle.setRightBorderColor(borderColor);
+            cellStyle.setBorderBottom(border);
+            cellStyle.setBottomBorderColor(borderColor);
+        }
+        if (backgroundColor != null) {
             cellStyle.setFillPattern(CellStyle.SOLID_FOREGROUND);
             cellStyle.setFillForegroundColor(backgroundColor);
+        }
+        if (format != null) {
+            cellStyle.setDataFormat(workbook.createDataFormat().getFormat(format));
         }
         return cellStyle;
     }
@@ -205,7 +222,7 @@ public class RowStyle {
     private Font createFont(XSSFWorkbook workbook) {
         Font font = workbook.createFont();
         font.setColor(fontColor);
-        font.setFontHeightInPoints((short) fontSize);
+        font.setFontHeightInPoints(fontSize.shortValue());
         return font;
     }
 
