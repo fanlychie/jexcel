@@ -14,10 +14,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Excel 工具类
+ * Excel 执行器
  * Created by fanlychie on 2017/3/5.
  */
-public final class Excels {
+public final class ExcelExecutor {
 
     /**
      * 默认的工作表
@@ -121,7 +121,7 @@ public final class Excels {
     /**
      * 私有化构造
      */
-    private Excels() {
+    private ExcelExecutor() {
 
     }
 
