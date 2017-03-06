@@ -2,6 +2,7 @@ package org.fanlychie.excel;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.fanlychie.excel.write.DataFormat;
 import org.fanlychie.excel.write.RowStyle;
 import org.fanlychie.excel.write.Sheet;
 import org.fanlychie.excel.write.WritableExcel;
@@ -69,7 +70,7 @@ public final class Excels {
      */
     private static Sheet buildDefaultSheet() {
         Sheet sheet = new Sheet("Sheet1");
-        sheet.setCellWidth(18);
+        sheet.setCellWidth(20);
         sheet.setBodyRowStyle(buildDefaultBodyRowStyle());
         sheet.setTitleRowStyle(buildDefaultTitleRowStyle());
         return sheet;
@@ -88,6 +89,7 @@ public final class Excels {
         titleRowStyle.setHeight(28);
         titleRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         titleRowStyle.setWrapText(false);
+        titleRowStyle.setFormat(DataFormat.getDefault(String.class));
         return titleRowStyle;
     }
 
