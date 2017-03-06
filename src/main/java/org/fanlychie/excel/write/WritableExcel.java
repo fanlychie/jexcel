@@ -36,7 +36,7 @@ public class WritableExcel {
     /**
      * 数据类型
      */
-    private Class<?> dataClass;
+    private Class<?> dataType;
 
     /**
      * 字符串内容格式
@@ -44,9 +44,9 @@ public class WritableExcel {
     private static short stringFormat;
 
     /**
-     * 布尔值映射表
+     * 布尔值字符串映射表
      */
-    private Map<Boolean, String> booleanValueMapping;
+    private Map<Boolean, String> booleanStringMapping;
 
     /**
      * 构建实例
@@ -74,32 +74,32 @@ public class WritableExcel {
     /**
      * 填充数据, 当数据列表为空时, 输出一个除了标题无实体内容的文件
      *
-     * @param data      数据列表
-     * @param dataClass 数据类型
+     * @param data     数据列表
+     * @param dataType 数据类型
      * @return 返回当前对象
      */
-    public WritableExcel data(List<?> data, Class<?> dataClass) {
+    public WritableExcel data(List<?> data, Class<?> dataType) {
         this.data = data;
-        if (dataClass == null) {
+        if (dataType == null) {
             if (data == null && data.isEmpty()) {
-                throw new NullPointerException();
+                throw new IllegalArgumentException("输出 Excel 文件的数据和数据类型不能同时为空");
             } else {
-                this.dataClass = data.get(0).getClass();
+                this.dataType = data.get(0).getClass();
             }
         } else {
-            this.dataClass = dataClass;
+            this.dataType = dataType;
         }
         return this;
     }
 
     /**
-     * 设置布尔值映射表
+     * 设置布尔值字符串映射表
      *
-     * @param booleanValueMapping 布尔值映射表
+     * @param booleanStringMapping 布尔值字符串映射表
      * @return 返回当前对象
      */
-    public WritableExcel booleanValueMapping(Map<Boolean, String> booleanValueMapping) {
-        this.booleanValueMapping = booleanValueMapping;
+    public WritableExcel booleanStringMapping(Map<Boolean, String> booleanStringMapping) {
+        this.booleanStringMapping = booleanStringMapping;
         return this;
     }
 
@@ -134,7 +134,7 @@ public class WritableExcel {
         try {
             // 工作薄
             XSSFWorkbook xSSFWorkbook = new XSSFWorkbook();
-            // 字符串内容格式
+            // 全局的字符串内容格式
             stringFormat = xSSFWorkbook.createDataFormat().getFormat(DataFormat.getDefault(String.class));
             // 工作表
             XSSFSheet xSSFSheet = xSSFWorkbook.createSheet(sheet.getName());
@@ -179,7 +179,7 @@ public class WritableExcel {
         // 文本数据格式
         style.setDataFormat(stringFormat);
         // 字段列表
-        List<FieldDomain> fieldDomains = AnnotationHandler.parseClass(dataClass);
+        List<FieldDomain> fieldDomains = AnnotationHandler.parseClass(dataType);
         // 迭代字段列表
         for (int i = 0; i < fieldDomains.size(); i++) {
             // 设置宽度
@@ -209,7 +209,7 @@ public class WritableExcel {
         // 设置行高
         row.setHeightInPoints(rowStyle.getHeight());
         // 字段列表
-        List<FieldDomain> fieldDomains = AnnotationHandler.parseClass(dataClass);
+        List<FieldDomain> fieldDomains = AnnotationHandler.parseClass(dataType);
         // Bean 描述符
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         // 迭代字段列表
@@ -236,8 +236,8 @@ public class WritableExcel {
             // 布尔类型, 若有做布尔->字符串内容映射, 则将布尔转成字符串表示
             else if (type == Boolean.TYPE || type == Boolean.class) {
                 boolean boolValue = Boolean.parseBoolean(value.toString());
-                if (booleanValueMapping != null) {
-                    String booleanStr = booleanValueMapping.get(boolValue);
+                if (booleanStringMapping != null) {
+                    String booleanStr = booleanStringMapping.get(boolValue);
                     if (booleanStr != null) {
                         style.setDataFormat(stringFormat);
                         cell.setCellValue(booleanStr);

@@ -26,7 +26,7 @@ public final class Excels {
     /**
      * 默认的布尔值字符串映射表
      */
-    private static final Map<Boolean, String> DEFAULT_BOOLEAN_VALUE_MAPPING = buildDefaultBooleanValueMapping();
+    private static final Map<Boolean, String> DEFAULT_BOOLEAN_STRING_MAPPING = buildDefaultBooleanStringMapping();
 
     /**
      * 快速输出 Excel 文件, 若数据列表为空, 则抛出 {@link org.fanlychie.excel.exception.WriteExcelException} 异常
@@ -41,18 +41,18 @@ public final class Excels {
     /**
      * 快速输出 Excel 文件, 当数据列表为空时, 输出一个除了标题无实体内容的文件
      *
-     * @param data      数据列表
-     * @param dataClass 数据类型
+     * @param data     数据列表
+     * @param dataType 数据类型
      * @return 返回可写的 Excel 对象
      */
-    public static WritableExcel write(Collection<?> data, Class<?> dataClass) {
+    public static WritableExcel write(Collection<?> data, Class<?> dataType) {
         List<?> dataList = null;
         if (data instanceof List) {
             dataList = (List<?>) data;
         } else {
             dataList = new ArrayList<>(data);
         }
-        return new WritableExcel(DEFAULT_SHEET).booleanValueMapping(DEFAULT_BOOLEAN_VALUE_MAPPING).data(dataList, dataClass);
+        return new WritableExcel(DEFAULT_SHEET).booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING).data(dataList, dataType);
     }
 
     /**
@@ -109,7 +109,7 @@ public final class Excels {
     /**
      * 构建默认的布尔值字符串映射表
      */
-    private static Map<Boolean, String> buildDefaultBooleanValueMapping() {
+    private static Map<Boolean, String> buildDefaultBooleanStringMapping() {
         Map<Boolean, String> mapping = new HashMap<>();
         mapping.put(true, "是");
         mapping.put(false, "否");
