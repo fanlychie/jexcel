@@ -8,12 +8,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 字段, 用于标记 Excel 单元格数据
+ * 用于标记 Excel 单元格数据字段
  * Created by fanlychie on 2017/3/4.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Field {
+public @interface ExcelField {
 
     /**
      * 单元格索引, 从左至右数, 数值从0开始
