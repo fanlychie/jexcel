@@ -44,10 +44,8 @@ public class User {
  }
  ````
  
- ## 生成 Excel 文件
- 
- ------------------
- 
+**生成 Excel 文件**
+
  ```java
 public static void main(String[] args) {
     ExcelExecutor.write(getUsers()).toFile("D:\\test.xlsx");
@@ -67,6 +65,10 @@ private static List<User> getUsers() {
 }
 ```
  
- ## 生成 Excel 文件
- 
- ------------------
+**读取 Excel 文件**
+
+```java
+public static void main(String[] args) {
+	List<User> list = ExcelExecutor.read("D:\\test.xlsx").parse(User.class);
+}
+```
