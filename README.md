@@ -3,9 +3,9 @@
 
 # 样例
 
-定义一个简单 POJO，并用 **@Cell** 注解标注数据字段。
+定义一个简单 POJO，并用 **@Cell** 注解标注数据字段：
 
-``` java
+```java
 public class User {
  
      @Cell(index = 0, name = "编号", align = Align.CENTER)
@@ -43,3 +43,24 @@ public class User {
  
  }
  ````
+ 
+ ## 生成 Excel 文件
+ 
+ ```java
+public static void main(String[] args) {
+    ExcelExecutor.write(getUsers()).toFile("D:\\test.xlsx");
+}
+
+// 模拟数据
+private static List<User> getUsers() {
+    List<User> users = new ArrayList<>();
+    for (int i = 1; i <= 20; i++) {
+        User user = new User();
+        user.setId(i);
+        user.setDate(new Date());
+        user.setName("U" + ThreadLocalRandom.current().nextInt(100));
+        users.add(user);
+    }
+    return users;
+}
+```
