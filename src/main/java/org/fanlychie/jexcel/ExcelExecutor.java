@@ -1,13 +1,13 @@
-package org.fanlychie.excel;
+package org.fanlychie.jexcel;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
-import org.fanlychie.excel.read.ReadOnlySheet;
-import org.fanlychie.excel.read.ReadableExcel;
-import org.fanlychie.excel.write.DataFormat;
-import org.fanlychie.excel.write.RowStyle;
-import org.fanlychie.excel.write.Sheet;
-import org.fanlychie.excel.write.WritableExcel;
+import org.fanlychie.jexcel.read.ReadOnlySheet;
+import org.fanlychie.jexcel.read.ReadableExcel;
+import org.fanlychie.jexcel.write.DataFormat;
+import org.fanlychie.jexcel.write.RowStyle;
+import org.fanlychie.jexcel.write.Sheet;
+import org.fanlychie.jexcel.write.WritableExcel;
 
 import java.io.File;
 import java.io.InputStream;

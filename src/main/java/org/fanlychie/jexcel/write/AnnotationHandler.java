@@ -1,6 +1,6 @@
-package org.fanlychie.excel.write;
+package org.fanlychie.jexcel.write;
 
-import org.fanlychie.excel.ExcelField;
+import org.fanlychie.jexcel.ExcelField;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.FieldDescriptor;
 

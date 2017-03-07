@@ -1,4 +1,4 @@
-package org.fanlychie.excel.read;
+package org.fanlychie.jexcel.read;
 
 /**
  * 只读的工作表

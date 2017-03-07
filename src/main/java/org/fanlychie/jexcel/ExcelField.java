@@ -1,6 +1,6 @@
-package org.fanlychie.excel;
+package org.fanlychie.jexcel;
 
-import org.fanlychie.excel.write.Align;
+import org.fanlychie.jexcel.write.Align;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

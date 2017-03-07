@@ -1,4 +1,4 @@
-package org.fanlychie.excel.write;
+package org.fanlychie.jexcel.write;
 
 /**
  * 字段域, 用于转换注解

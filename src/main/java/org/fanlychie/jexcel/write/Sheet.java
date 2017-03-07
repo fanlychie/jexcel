@@ -1,4 +1,4 @@
-package org.fanlychie.excel.write;
+package org.fanlychie.jexcel.write;
 
 /**
  * 工作表

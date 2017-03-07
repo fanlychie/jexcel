@@ -1,4 +1,4 @@
-package org.fanlychie.excel.exception;
+package org.fanlychie.jexcel.exception;
 
 /**
  * 输出 Excel 异常
