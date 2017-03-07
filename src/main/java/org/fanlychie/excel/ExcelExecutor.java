@@ -2,11 +2,15 @@ package org.fanlychie.excel;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.fanlychie.excel.read.ReadOnlySheet;
+import org.fanlychie.excel.read.ReadableExcel;
 import org.fanlychie.excel.write.DataFormat;
 import org.fanlychie.excel.write.RowStyle;
 import org.fanlychie.excel.write.Sheet;
 import org.fanlychie.excel.write.WritableExcel;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,12 +29,17 @@ public final class ExcelExecutor {
     private static final Sheet DEFAULT_SHEET = buildDefaultSheet();
 
     /**
+     * 默认的只读工作表
+     */
+    private static final ReadOnlySheet DEFAULT_READ_ONLY_SHEET = buildDefaultReadOnlySheet();
+
+    /**
      * 默认的布尔值字符串映射表
      */
     private static final Map<Boolean, String> DEFAULT_BOOLEAN_STRING_MAPPING = buildDefaultBooleanStringMapping();
 
     /**
-     * 快速输出 Excel 文件, 若数据列表为空, 则抛出 {@link org.fanlychie.excel.exception.WriteExcelException} 异常
+     * 快速输出 Excel 文件, 若数据列表为空, 则抛出 {@link java.lang.IllegalArgumentException} 异常
      *
      * @param data 数据列表
      * @return 返回可写的 Excel 对象
@@ -54,6 +63,36 @@ public final class ExcelExecutor {
             dataList = new ArrayList<>(data);
         }
         return new WritableExcel(DEFAULT_SHEET).booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING).data(dataList, dataType);
+    }
+
+    /**
+     * 快速读取 Excel 文件
+     *
+     * @param file Excel 文件
+     * @return 返回可读的 Excel 对象
+     */
+    public static ReadableExcel read(File file) {
+        return new ReadableExcel(DEFAULT_READ_ONLY_SHEET).load(file);
+    }
+
+    /**
+     * 快速读取 Excel 文件
+     *
+     * @param pathname Excel 文件路径名称
+     * @return 返回可读的 Excel 对象
+     */
+    public static ReadableExcel read(String pathname) {
+        return new ReadableExcel(DEFAULT_READ_ONLY_SHEET).load(pathname);
+    }
+
+    /**
+     * 快速读取 Excel 文件流
+     *
+     * @param inputStream Excel 输入流
+     * @return 返回可读的 Excel 对象
+     */
+    public static ReadableExcel read(InputStream inputStream) {
+        return new ReadableExcel(DEFAULT_READ_ONLY_SHEET).load(inputStream);
     }
 
     /**
@@ -116,6 +155,16 @@ public final class ExcelExecutor {
         mapping.put(true, "是");
         mapping.put(false, "否");
         return mapping;
+    }
+
+    /**
+     * 构建只读的工作表
+     */
+    private static ReadOnlySheet buildDefaultReadOnlySheet() {
+        ReadOnlySheet readOnlySheet = new ReadOnlySheet();
+        readOnlySheet.setIndex(0);
+        readOnlySheet.setFirstRowNum(2);
+        return readOnlySheet;
     }
 
     /**
