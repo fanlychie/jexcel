@@ -6,6 +6,8 @@ import org.apache.poi.xssf.usermodel.XSSFDataFormat;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.fanlychie.jexcel.annotation.AnnotationHandler;
+import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.exception.ExcelCastException;
 

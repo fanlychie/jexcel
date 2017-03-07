@@ -5,8 +5,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.fanlychie.jexcel.write.AnnotationHandler;
-import org.fanlychie.jexcel.write.CellField;
+import org.fanlychie.jexcel.annotation.AnnotationHandler;
+import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.exception.ExcelCastException;
 

@@ -1,4 +1,4 @@
-package org.fanlychie.jexcel;
+package org.fanlychie.jexcel.annotation;
 
 import org.fanlychie.jexcel.write.Align;
 

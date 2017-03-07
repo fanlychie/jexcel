@@ -1,6 +1,6 @@
-package org.fanlychie.jexcel.write;
+package org.fanlychie.jexcel.annotation;
 
-import org.fanlychie.jexcel.Cell;
+import org.fanlychie.jexcel.write.DataFormat;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.FieldDescriptor;
 
@@ -41,10 +41,10 @@ public final class AnnotationHandler {
     }
 
     /**
-     * 转换 @Cell 注解为 {@link org.fanlychie.jexcel.write.CellField} 集合表示
+     * 转换 @Cell 注解为 {@link CellField} 集合表示
      *
      * @param annotationMap @Cell 注解映射表
-     * @return 返回 {@link org.fanlychie.jexcel.write.CellField} 列表数据
+     * @return 返回 {@link CellField} 列表数据
      */
     private static List<CellField> convertCellAnnotationToCellFields(Map<Field, Cell> annotationMap) {
         List<CellField> cellFields = new ArrayList<>();
@@ -84,7 +84,7 @@ public final class AnnotationHandler {
     }
 
     /**
-     * 排序 {@link org.fanlychie.jexcel.write.CellField} 的 index 顺序
+     * 排序 {@link CellField} 的 index 顺序
      *
      * @param cellFields 单元格字段列表
      */
