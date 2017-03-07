@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.fanlychie.jexcel.write.AnnotationHandler;
-import org.fanlychie.jexcel.write.ExcelFieldDomain;
+import org.fanlychie.jexcel.write.CellField;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.exception.ExcelCastException;
 
@@ -106,9 +106,9 @@ public class ReadableExcel {
                 lastRowNum = sheet.getLastRowNum();
             }
             List<T> list = new ArrayList<>();
-            List<ExcelFieldDomain> excelFieldDomains = AnnotationHandler.parseClass(targetClass);
+            List<CellField> cellFields = AnnotationHandler.parseClass(targetClass);
             for (int i = firstRowNum; i < lastRowNum; i++) {
-                list.add(convertRowToObject(sheet.getRow(i), targetClass, excelFieldDomains));
+                list.add(convertRowToObject(sheet.getRow(i), targetClass, cellFields));
             }
             return list;
         } catch (Throwable e) {
@@ -119,22 +119,22 @@ public class ReadableExcel {
     /**
      * 将行内容转换为对象表示
      *
-     * @param row               行对象
-     * @param targetClass       目标类
-     * @param excelFieldDomains 字段域列表
-     * @param <T>               目标类
+     * @param row         行对象
+     * @param targetClass 目标类
+     * @param cellFields  单元格注解字段列表
+     * @param <T>         目标类
      * @return 返回内容转换为的对象
      * @throws Exception
      */
-    private <T> T convertRowToObject(Row row, Class<T> targetClass, List<ExcelFieldDomain> excelFieldDomains) throws Exception {
+    private <T> T convertRowToObject(Row row, Class<T> targetClass, List<CellField> cellFields) throws Exception {
         T obj = targetClass.newInstance();
-        int size = excelFieldDomains.size();
+        int size = cellFields.size();
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         for (int i = 0; i < size; i++) {
             Cell cell = row.getCell(i);
-            ExcelFieldDomain excelFieldDomain = excelFieldDomains.get(i);
-            String field = excelFieldDomain.getField();
-            Class<?> type = excelFieldDomain.getType();
+            CellField cellField = cellFields.get(i);
+            String field = cellField.getField();
+            Class<?> type = cellField.getType();
             Object value = getCellValue(cell, type);
             beanDescriptor.setValueByName(field, value);
         }

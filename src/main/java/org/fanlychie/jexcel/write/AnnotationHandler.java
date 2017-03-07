@@ -1,6 +1,6 @@
 package org.fanlychie.jexcel.write;
 
-import org.fanlychie.jexcel.ExcelField;
+import org.fanlychie.jexcel.Cell;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.FieldDescriptor;
 
@@ -19,81 +19,81 @@ import java.util.Map;
 public final class AnnotationHandler {
 
     /**
-     * 注解缓存
+     * 缓存
      */
-    private static final Map<Class<?>, List<ExcelFieldDomain>> ANNOTATION_CACHE = new HashMap<>();
+    private static final Map<Class<?>, List<CellField>> CELL_FIELD_CACHE = new HashMap<>();
 
     /**
-     * 解析类声明的 @Field 注解
+     * 解析类声明的 @Cell 注解
      *
      * @param targetClass 目标类
-     * @return 返回解析出来的 ExcelFieldDomain 数据列表
+     * @return 返回解析出来的 CellField 数据列表
      */
-    public static List<ExcelFieldDomain> parseClass(Class<?> targetClass) {
-        List<ExcelFieldDomain> excelFieldDomains = ANNOTATION_CACHE.get(targetClass);
-        if (excelFieldDomains == null) {
-            Map<Field, ExcelField> fieldAnnotationMap = getFieldAnnotationMap(targetClass);
-            excelFieldDomains = convertAnnotationToDomains(fieldAnnotationMap);
-            sortExcelFieldDomains(excelFieldDomains);
-            ANNOTATION_CACHE.put(targetClass, excelFieldDomains);
+    public static List<CellField> parseClass(Class<?> targetClass) {
+        List<CellField> cellFields = CELL_FIELD_CACHE.get(targetClass);
+        if (cellFields == null) {
+            Map<Field, Cell> cellAnnotationMap = getCellAnnotationMap(targetClass);
+            cellFields = convertCellAnnotationToCellFields(cellAnnotationMap);
+            sortCellFieldIndex(cellFields);
+            CELL_FIELD_CACHE.put(targetClass, cellFields);
         }
-        return excelFieldDomains;
+        return cellFields;
     }
 
     /**
-     * 转换注解为域的形式表示
+     * 转换 @Cell 注解为 {@link org.fanlychie.jexcel.write.CellField} 集合表示
      *
-     * @param fieldAnnotationMap 字段属性注解表
-     * @return 返回域列表数据
+     * @param annotationMap @Cell 注解映射表
+     * @return 返回 {@link org.fanlychie.jexcel.write.CellField} 列表数据
      */
-    private static List<ExcelFieldDomain> convertAnnotationToDomains(Map<Field, ExcelField> fieldAnnotationMap) {
-        List<ExcelFieldDomain> excelFieldDomains = new ArrayList<>();
-        for (Field field : fieldAnnotationMap.keySet()) {
-            ExcelField excelField = fieldAnnotationMap.get(field);
-            ExcelFieldDomain excelFieldDomain = new ExcelFieldDomain();
-            excelFieldDomain.setType(field.getType());
-            excelFieldDomain.setField(field.getName());
-            excelFieldDomain.setName(excelField.name());
-            excelFieldDomain.setIndex(excelField.index());
-            excelFieldDomain.setAlign(excelField.align());
-            String format = excelField.format();
+    private static List<CellField> convertCellAnnotationToCellFields(Map<Field, Cell> annotationMap) {
+        List<CellField> cellFields = new ArrayList<>();
+        for (Field field : annotationMap.keySet()) {
+            Cell cell = annotationMap.get(field);
+            CellField cellField = new CellField();
+            cellField.setType(field.getType());
+            cellField.setField(field.getName());
+            cellField.setName(cell.name());
+            cellField.setIndex(cell.index());
+            cellField.setAlign(cell.align());
+            String format = cell.format();
             if (format != null && !format.isEmpty()) {
-                excelFieldDomain.setFormat(format);
+                cellField.setFormat(format);
             } else {
-                excelFieldDomain.setFormat(DataFormat.getDefault(field.getType()));
+                cellField.setFormat(DataFormat.getDefault(field.getType()));
             }
-            excelFieldDomains.add(excelFieldDomain);
+            cellFields.add(cellField);
         }
-        return excelFieldDomains;
+        return cellFields;
     }
 
     /**
-     * 获取字段属性注解的映射表
+     * 获取 @Cell 注解标注的 Map<字段对象, 注解对象>
      *
      * @param targetClass 目标类
      * @return 返回 Map<字段对象, 注解对象>
      */
-    private static Map<Field, ExcelField> getFieldAnnotationMap(Class<?> targetClass) {
+    private static Map<Field, Cell> getCellAnnotationMap(Class<?> targetClass) {
         BeanDescriptor beanDescriptor = new BeanDescriptor(targetClass);
         FieldDescriptor fieldDescriptor = beanDescriptor.getFieldDescriptor();
-        Map<Field, ExcelField> fieldAnnotationMap = fieldDescriptor.getAnnotationsMap(ExcelField.class);
-        if (fieldAnnotationMap.isEmpty()) {
-            throw new UnsupportedOperationException("you must mark the data field with the @ExcelField annotation in " + targetClass);
+        Map<Field, Cell> annotationMap = fieldDescriptor.getAnnotationsMap(Cell.class);
+        if (annotationMap.isEmpty()) {
+            throw new UnsupportedOperationException("you must mark the data field with the @Cell annotation in " + targetClass);
         }
-        return fieldAnnotationMap;
+        return annotationMap;
     }
 
     /**
-     * 排序字段域列表
+     * 排序 {@link org.fanlychie.jexcel.write.CellField} 的 index 顺序
      *
-     * @param excelFieldDomains 字段域列表
+     * @param cellFields 单元格字段列表
      */
-    private static void sortExcelFieldDomains(List<ExcelFieldDomain> excelFieldDomains) {
-        Collections.sort(excelFieldDomains, new Comparator<ExcelFieldDomain>() {
+    private static void sortCellFieldIndex(List<CellField> cellFields) {
+        Collections.sort(cellFields, new Comparator<CellField>() {
             @Override
-            public int compare(ExcelFieldDomain e1, ExcelFieldDomain e2) {
-                int i1 = e1.getIndex();
-                int i2 = e2.getIndex();
+            public int compare(CellField cf1, CellField cf2) {
+                int i1 = cf1.getIndex();
+                int i2 = cf2.getIndex();
                 return (i1 < i2) ? -1 : ((i1 == i2) ? 0 : 1);
             }
         });

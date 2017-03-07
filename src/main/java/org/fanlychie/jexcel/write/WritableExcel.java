@@ -44,9 +44,9 @@ public class WritableExcel {
     private XSSFWorkbook xSSFWorkbook;
 
     /**
-     * Excel 字段域列表
+     * 单元格注解字段列表
      */
-    private List<ExcelFieldDomain> excelFieldDomains;
+    private List<CellField> cellFields;
 
     /**
      * 布尔值字符串映射表
@@ -91,7 +91,7 @@ public class WritableExcel {
                 dataType = data.get(0).getClass();
             }
         }
-        this.excelFieldDomains = AnnotationHandler.parseClass(dataType);
+        this.cellFields = AnnotationHandler.parseClass(dataType);
         return this;
     }
 
@@ -161,12 +161,12 @@ public class WritableExcel {
         XSSFRow row = xSSFSheet.createRow(rowStyle.getIndex());
         row.setHeightInPoints(rowStyle.getHeight());
         CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
-        for (ExcelFieldDomain excelFieldDomain : excelFieldDomains) {
-            int index = excelFieldDomain.getIndex();
+        for (CellField cellField : cellFields) {
+            int index = cellField.getIndex();
             xSSFSheet.setColumnWidth(index, sheet.getCellWidth());
             XSSFCell cell = row.createCell(index);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(excelFieldDomain.getName());
+            cell.setCellValue(cellField.getName());
         }
     }
 
@@ -182,13 +182,13 @@ public class WritableExcel {
         XSSFRow row = xSSFSheet.createRow(index);
         row.setHeightInPoints(rowStyle.getHeight());
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
-        for (ExcelFieldDomain excelFieldDomain : excelFieldDomains) {
-            XSSFCell cell = row.createCell(excelFieldDomain.getIndex());
+        for (CellField cellField : cellFields) {
+            XSSFCell cell = row.createCell(cellField.getIndex());
             CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
-            cellStyle.setAlignment(excelFieldDomain.getAlign().getValue());
-            Object value = beanDescriptor.getValueByName(excelFieldDomain.getField());
-            Class<?> type = excelFieldDomain.getType();
-            String format = excelFieldDomain.getFormat();
+            cellStyle.setAlignment(cellField.getAlign().getValue());
+            Object value = beanDescriptor.getValueByName(cellField.getField());
+            Class<?> type = cellField.getType();
+            String format = cellField.getFormat();
             setCellValue(cell, cellStyle, value, type, format);
             cell.setCellStyle(cellStyle);
         }

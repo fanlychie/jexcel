@@ -1,10 +1,10 @@
 package org.fanlychie.jexcel.write;
 
 /**
- * 字段域, 用于转换注解
+ * 单元格注解字段
  * Created by fanlychie on 2017/3/5.
  */
-public class ExcelFieldDomain {
+public class CellField {
 
     /**
      * 单元格索引
@@ -14,7 +14,7 @@ public class ExcelFieldDomain {
     private int index;
 
     /**
-     * 单元格标题名称
+     * 单元格标题
      *
      * @return
      */
@@ -47,7 +47,7 @@ public class ExcelFieldDomain {
     /**
      * 外部不可访问
      */
-    ExcelFieldDomain() {
+    CellField() {
 
     }
 
