@@ -1,14 +1,21 @@
 package org.fanlychie.excel.read;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.fanlychie.excel.write.AnnotationHandler;
+import org.fanlychie.excel.write.ExcelFieldDomain;
+import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.exception.ExcelCastException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,90 +25,139 @@ import java.util.List;
 public class ReadableExcel {
 
     /**
-     * 工作表
-     */
-    private Sheet sheet;
-
-    /**
-     * 工作表索引值
-     */
-    private int sheetIndex;
-
-    /**
-     * 工作表名称
-     */
-    private String sheetName;
-
-    /**
-     * Excel 文件输入流
+     * 文件输入流
      */
     private InputStream inputStream;
 
     /**
-     * 构建实例
-     *
-     * @param pathname 文件路径名称
+     * 只读的工作表
      */
-    public ReadableExcel(String pathname) {
-        this(new File(pathname));
-    }
+    private ReadOnlySheet readOnlySheet;
 
     /**
      * 构建实例
      *
-     * @param file 文件对象
+     * @param readOnlySheet 只读的工作表
      */
-    public ReadableExcel(File file) {
+    public ReadableExcel(ReadOnlySheet readOnlySheet) {
+        this.readOnlySheet = readOnlySheet;
+    }
+
+    /**
+     * 载入 Excel 文件
+     *
+     * @param file Excel 文件
+     * @return 返回当前对象
+     */
+    public ReadableExcel load(File file) {
         try {
             this.inputStream = new FileInputStream(file);
+            return this;
         } catch (FileNotFoundException e) {
             throw new ExcelCastException(e);
         }
     }
 
     /**
-     * 构建对象
+     * 载入 Excel 文件
      *
-     * @param inputStream 文件输入流
+     * @param pathname Excel 文件路径名称
+     * @return 返回当前对象
      */
-    public ReadableExcel(InputStream inputStream) {
+    public ReadableExcel load(String pathname) {
+        return load(new File(pathname));
+    }
+
+    /**
+     * 载入 Excel 文件流
+     *
+     * @param inputStream Excel 文件输入流
+     * @return 返回当前对象
+     */
+    public ReadableExcel load(InputStream inputStream) {
         this.inputStream = inputStream;
-    }
-
-    /**
-     * 设置读取的工作表索引
-     * @param sheetIndex 读取的工作表索引值, 从0开始
-     * @return 返回当前对象
-     */
-    public ReadableExcel sheetIndex(int sheetIndex) {
-        this.sheetIndex = sheetIndex;
         return this;
     }
 
     /**
-     * 设置读取的工作表名称
-     * @param sheetName 读取的工作表名称
-     * @return 返回当前对象
+     * 解析 Excel 文档内容
+     *
+     * @param targetClass 目标类, 每一行的内容解析为此类的一个实例
+     * @param <T>         目标类型
+     * @return 返回解析的数据列表
      */
-    public ReadableExcel sheetName(String sheetName) {
-        this.sheetName = sheetName;
-        return this;
-    }
-
     public <T> List<T> parse(Class<T> targetClass) {
         try {
-            // 工作薄
             Workbook workbook = WorkbookFactory.create(inputStream);
-            // 获取要解析的工作表
-            if (sheetName != null && !sheetName.isEmpty()) {
-                sheet = workbook.getSheet(sheetName);
+            Sheet sheet = null;
+            if (readOnlySheet.getName() != null) {
+                sheet = workbook.getSheet(readOnlySheet.getName());
             } else {
-                sheet = workbook.getSheetAt(sheetIndex);
+                sheet = workbook.getSheetAt(readOnlySheet.getIndex());
             }
+            int firstRowNum = readOnlySheet.getFirstRowNum();
+            if (firstRowNum > 0) {
+                firstRowNum--;
+            }
+            int lastRowNum;
+            if (readOnlySheet.getLastRowNum() > firstRowNum) {
+                lastRowNum = readOnlySheet.getLastRowNum() - 1;
+            } else {
+                lastRowNum = sheet.getLastRowNum();
+            }
+            List<T> list = new ArrayList<>();
+            List<ExcelFieldDomain> excelFieldDomains = AnnotationHandler.parseClass(targetClass);
+            for (int i = firstRowNum; i < lastRowNum; i++) {
+                list.add(convertRowToObject(sheet.getRow(i), targetClass, excelFieldDomains));
+            }
+            return list;
         } catch (Throwable e) {
             throw new ExcelCastException(e);
         }
-        return null;
+    }
+
+    /**
+     * 将行内容转换为对象表示
+     *
+     * @param row               行对象
+     * @param targetClass       目标类
+     * @param excelFieldDomains 字段域列表
+     * @param <T>               目标类
+     * @return 返回内容转换为的对象
+     * @throws Exception
+     */
+    private <T> T convertRowToObject(Row row, Class<T> targetClass, List<ExcelFieldDomain> excelFieldDomains) throws Exception {
+        T obj = targetClass.newInstance();
+        int size = excelFieldDomains.size();
+        BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
+        for (int i = 0; i < size; i++) {
+            Cell cell = row.getCell(i);
+            ExcelFieldDomain excelFieldDomain = excelFieldDomains.get(i);
+            String field = excelFieldDomain.getField();
+            Class<?> type = excelFieldDomain.getType();
+            Object value = getCellValue(cell, type);
+            beanDescriptor.setValueByName(field, value);
+        }
+        return obj;
+    }
+
+    /**
+     * 获取单元格的值
+     *
+     * @param cell 单元格对象
+     * @param type 数据类型
+     * @return 返回单元格数据类型的值
+     */
+    private Object getCellValue(Cell cell, Class<?> type) {
+        if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+            return null;
+        }
+        if (type == Date.class) {
+            return cell.getDateCellValue();
+        }
+        cell.setCellType(Cell.CELL_TYPE_STRING);
+        String cellStringValue = cell.getStringCellValue();
+        return ValueConverter.convertObjectValue(cellStringValue, type);
     }
 
 }
