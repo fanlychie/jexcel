@@ -1,7 +1,6 @@
 package org.fanlychie.excel.write;
 
 import org.fanlychie.excel.ExcelField;
-import org.fanlychie.excel.exception.WriteExcelException;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.FieldDescriptor;
 
@@ -79,7 +78,7 @@ public final class AnnotationHandler {
         FieldDescriptor fieldDescriptor = beanDescriptor.getFieldDescriptor();
         Map<Field, ExcelField> fieldAnnotationMap = fieldDescriptor.getAnnotationsMap(ExcelField.class);
         if (fieldAnnotationMap.isEmpty()) {
-            throw new WriteExcelException("你必须在 " + targetClass.getName() + " 类中使用 @ExcelField 注解标注数据属性");
+            throw new UnsupportedOperationException("you must mark the data field with the @ExcelField annotation in " + targetClass);
         }
         return fieldAnnotationMap;
     }

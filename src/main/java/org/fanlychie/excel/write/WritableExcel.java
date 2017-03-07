@@ -6,7 +6,6 @@ import org.apache.poi.xssf.usermodel.XSSFDataFormat;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.fanlychie.excel.exception.WriteExcelException;
 import org.fanlychie.reflection.BeanDescriptor;
 import org.fanlychie.reflection.exception.ExcelCastException;
 
@@ -64,15 +63,14 @@ public class WritableExcel {
     }
 
     /**
-     * 填充数据, 若数据列表为空, 则抛出 {@link org.fanlychie.excel.exception.WriteExcelException} 异常
+     * 填充数据, 若数据列表为空, 则抛出 {@link java.lang.IllegalArgumentException} 异常
      *
      * @param data 数据列表
      * @return 返回当前对象
      */
     public WritableExcel data(List<?> data) {
-        // 数据为空时取不到目标 Class, 无法做解析
         if (data == null || data.size() == 0) {
-            throw new WriteExcelException("输出 Excel 文件的数据不能为空");
+            throw new IllegalArgumentException("data can not be empty");
         }
         return data(data, data.get(0).getClass());
     }
@@ -88,7 +86,7 @@ public class WritableExcel {
         this.data = data;
         if (dataType == null) {
             if (data == null && data.isEmpty()) {
-                throw new IllegalArgumentException("输出 Excel 文件的数据和数据类型不能同时为空");
+                throw new IllegalArgumentException("data and type can not be empty at the same time");
             } else {
                 dataType = data.get(0).getClass();
             }
@@ -137,21 +135,13 @@ public class WritableExcel {
      */
     public void toStream(OutputStream out) {
         try {
-            // XSSF 工作薄
             this.xSSFWorkbook = new XSSFWorkbook();
-            // XSSF 工作表
             this.xSSFSheet = xSSFWorkbook.createSheet(sheet.getName());
-            // 构建标题行内容
             buildExcelTitleRow();
-            // 只处理非空数据
             if (data != null && !data.isEmpty()) {
-                // 主题行样式
                 RowStyle bodyRowStyle = sheet.getBodyRowStyle();
-                // 主体行索引
                 int bodyIndex = bodyRowStyle.getIndex();
-                // 迭代数据列表
                 for (Object item : data) {
-                    // 构建主体行内容
                     buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
                 }
             }
@@ -167,25 +157,15 @@ public class WritableExcel {
      * @throws Throwable
      */
     private void buildExcelTitleRow() throws Throwable {
-        // 标题行样式
         RowStyle rowStyle = sheet.getTitleRowStyle();
-        // 创建一行
         XSSFRow row = xSSFSheet.createRow(rowStyle.getIndex());
-        // 设置行高
         row.setHeightInPoints(rowStyle.getHeight());
-        // 单元格样式
         CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
-        // 迭代数据域列表
         for (ExcelFieldDomain excelFieldDomain : excelFieldDomains) {
-            // 单元格索引
             int index = excelFieldDomain.getIndex();
-            // 设置宽度
             xSSFSheet.setColumnWidth(index, sheet.getCellWidth());
-            // 创建单元格
             XSSFCell cell = row.createCell(index);
-            // 设置单元格样式
             cell.setCellStyle(cellStyle);
-            // 设置单元格的值
             cell.setCellValue(excelFieldDomain.getName());
         }
     }
@@ -199,29 +179,17 @@ public class WritableExcel {
      * @throws Throwable
      */
     private void buildExcelBodyRow(RowStyle rowStyle, int index, Object obj) throws Throwable {
-        // 创建一行
         XSSFRow row = xSSFSheet.createRow(index);
-        // 设置行高
         row.setHeightInPoints(rowStyle.getHeight());
-        // Bean 描述符
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
-        // 迭代数据域列表
         for (ExcelFieldDomain excelFieldDomain : excelFieldDomains) {
-            // 创建单元格
             XSSFCell cell = row.createCell(excelFieldDomain.getIndex());
-            // 单元格样式
             CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
-            // 对齐方式
             cellStyle.setAlignment(excelFieldDomain.getAlign().getValue());
-            // 单元格值
             Object value = beanDescriptor.getValueByName(excelFieldDomain.getField());
-            // 单元格数据类型
             Class<?> type = excelFieldDomain.getType();
-            // 单元格格式
             String format = excelFieldDomain.getFormat();
-            // 设置单元格的值
             setCellValue(cell, cellStyle, value, type, format);
-            // 设置单元格样式
             cell.setCellStyle(cellStyle);
         }
     }
@@ -236,26 +204,17 @@ public class WritableExcel {
      * @param format    数据格式
      */
     private void setCellValue(XSSFCell cell, CellStyle cellStyle, Object value, Class<?> type, String format) {
-        // 空值以空白字符串填充
         if (value == null) {
             setCellStringValue(cell, cellStyle, "");
-        }
-        // 布尔类型, 若有做布尔->字符串内容映射, 则将布尔转成字符串表示
-        else if (type == Boolean.TYPE || type == Boolean.class) {
+        } else if (type == Boolean.TYPE || type == Boolean.class) {
             setCellBooleanValue(cell, cellStyle, value, format);
-        }
-        // 数值类型处理
-        else if ((Number.class.isAssignableFrom(type) || type.isPrimitive()) && type != Byte.TYPE && type != Character.TYPE) {
+        } else if ((Number.class.isAssignableFrom(type) || type.isPrimitive()) && type != Byte.TYPE && type != Character.TYPE) {
             setCellDataFormat(cellStyle, format);
             cell.setCellValue(Double.parseDouble(value.toString()));
-        }
-        // 日期类型处理
-        else if (type == Date.class) {
+        } else if (type == Date.class) {
             cell.setCellValue((Date) value);
             setCellDataFormat(cellStyle, format);
-        }
-        // 其余类型视为字符串处理
-        else {
+        } else {
             setCellStringValue(cell, cellStyle, value.toString());
         }
     }
