@@ -1,8 +1,8 @@
 package org.fanlychie.jexcel.annotation;
 
 import org.fanlychie.jexcel.write.DataFormat;
-import org.fanlychie.reflection.BeanDescriptor;
-import org.fanlychie.reflection.FieldDescriptor;
+import org.fanlychie.jreflect.BeanDescriptor;
+import org.fanlychie.jreflect.FieldDescriptor;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

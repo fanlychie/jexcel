@@ -7,8 +7,8 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
-import org.fanlychie.reflection.BeanDescriptor;
-import org.fanlychie.reflection.exception.ExcelCastException;
+import org.fanlychie.jreflect.BeanDescriptor;
+import org.fanlychie.jexcel.exception.ExcelCastException;
 
 import java.io.File;
 import java.io.FileInputStream;
