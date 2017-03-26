@@ -76,7 +76,7 @@ public final class AnnotationHandler {
     private static Map<Field, Cell> getCellAnnotationMap(Class<?> targetClass) {
         BeanDescriptor beanDescriptor = new BeanDescriptor(targetClass);
         FieldDescriptor fieldDescriptor = beanDescriptor.getFieldDescriptor();
-        Map<Field, Cell> annotationMap = fieldDescriptor.getAnnotationsMap(Cell.class);
+        Map<Field, Cell> annotationMap = fieldDescriptor.getFieldAnnotationMap(Cell.class);
         if (annotationMap.isEmpty()) {
             throw new UnsupportedOperationException("you must mark the data field with the @Cell annotation in " + targetClass);
         }

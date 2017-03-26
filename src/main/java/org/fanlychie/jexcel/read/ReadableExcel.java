@@ -124,12 +124,11 @@ public class ReadableExcel {
      * @param cellFields  单元格注解字段列表
      * @param <T>         目标类
      * @return 返回内容转换为的对象
-     * @throws Exception
      */
-    private <T> T convertRowToObject(Row row, Class<T> targetClass, List<CellField> cellFields) throws Exception {
-        T obj = targetClass.newInstance();
+    private <T> T convertRowToObject(Row row, Class<T> targetClass, List<CellField> cellFields) {
+        BeanDescriptor beanDescriptor = new BeanDescriptor(targetClass);
+        T obj = beanDescriptor.newInstance();
         int size = cellFields.size();
-        BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         for (int i = 0; i < size; i++) {
             Cell cell = row.getCell(i);
             CellField cellField = cellFields.get(i);
