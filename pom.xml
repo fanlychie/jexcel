@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.fanlychie</groupId>
     <artifactId>jexcel</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <name>jexcel</name>
     <url>http://maven.apache.org</url>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.fanlychie</groupId>
             <artifactId>jreflect</artifactId>
-            <version>1.2.0beta</version>
+            <version>1.2.0</version>
         </dependency>
     </dependencies>
     <build>
