@@ -1,6 +1,23 @@
 # jexcel
 基于 Apache POI 开发的 Excel 文件读写工具包
 
+# 下载依赖
+
+```xml
+<repositories>
+    <repository>
+        <id>github-maven-repo</id>
+        <url>https://raw.github.com/fanlychie/maven-repo/releases</url>
+    </repository>
+</repositories>
+
+<dependency>
+    <groupId>org.fanlychie</groupId>
+    <artifactId>jexcel</artifactId>
+    <version>1.0.1</version>
+</dependency>
+```
+
 # 样例
 
 定义一个简单 POJO，并用 **@Cell** 注解标注数据字段：
