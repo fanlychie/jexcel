@@ -99,15 +99,10 @@ public class ReadableExcel {
             if (firstRowNum > 0) {
                 firstRowNum--;
             }
-            int lastRowNum;
-            if (readOnlySheet.getLastRowNum() > firstRowNum) {
-                lastRowNum = readOnlySheet.getLastRowNum() - 1;
-            } else {
-                lastRowNum = sheet.getLastRowNum();
-            }
+            int lastRowNum = sheet.getLastRowNum();
             List<T> list = new ArrayList<>();
             List<CellField> cellFields = AnnotationHandler.parseClass(targetClass);
-            for (int i = firstRowNum; i < lastRowNum; i++) {
+            for (int i = firstRowNum; i <= lastRowNum; i++) {
                 list.add(convertRowToObject(sheet.getRow(i), targetClass, cellFields));
             }
             return list;
