@@ -8,14 +8,15 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
-import org.fanlychie.jreflect.BeanDescriptor;
 import org.fanlychie.jexcel.exception.ExcelCastException;
+import org.fanlychie.jreflect.BeanDescriptor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public class WritableExcel {
     /**
      * 脚部数据
      */
-    private List<?> footerData;
+    private Map<Object, Object> footerData;
 
     /**
      * XSSF 工作表
@@ -56,14 +57,11 @@ public class WritableExcel {
     private List<CellField> cellFields;
 
     /**
-     * 脚部单元格注解字段列表
-     */
-    private List<CellField> footerCellFields;
-
-    /**
      * 布尔值字符串映射表
      */
     private Map<Boolean, String> booleanStringMapping;
+
+    private static final Object CRLF = "CRLF";
 
     /**
      * 构建实例
@@ -108,15 +106,20 @@ public class WritableExcel {
     }
 
     /**
-     * 脚部填充数据, 当数据列表为空时, 不创建脚部行
+     * 脚部填充数据
      *
-     * @param footerData 数据列表
+     * @param keyValues 行数据列表
      * @return 返回当前对象
      */
-    public WritableExcel footer(List<?> footerData) {
-        this.footerData = footerData;
-        if (footerData != null && footerData.size() > 0) {
-            this.footerCellFields = AnnotationHandler.parseClass(footerData.get(0).getClass());
+    public WritableExcel addFooter(Object... keyValues) {
+        int length = keyValues.length;
+        if (footerData == null) {
+            footerData = new LinkedHashMap<>();
+        } else {
+            footerData.put(CRLF, null);
+        }
+        for (int i = 0; i < length; i += 2) {
+            footerData.put(keyValues[i], keyValues[i + 1]);
         }
         return this;
     }
@@ -170,12 +173,8 @@ public class WritableExcel {
                 for (Object item : data) {
                     buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
                 }
-                if (footerData != null && !footerData.isEmpty()) {
-                    RowStyle footerRowStyle = sheet.getFooterRowStyle();
-                    int footerIndex = data.size() + 1;
-                    for (Object item : footerData) {
-                        buildExcelFooterRow(footerRowStyle, footerIndex++, item);
-                    }
+                if (footerData != null) {
+                    buildExcelFooterRow();
                 }
             }
             xSSFWorkbook.write(out);
@@ -229,28 +228,27 @@ public class WritableExcel {
 
     /**
      * 构建 Excel 脚部行内容
-     *
-     * @param rowStyle 行样式
-     * @param index    行索引
-     * @param obj      填充单元格的对象数据
-     * @throws Throwable
      */
-    private void buildExcelFooterRow(RowStyle rowStyle, int index, Object obj) throws Throwable {
-        XSSFRow row = xSSFSheet.createRow(index);
+    private void buildExcelFooterRow() {
+        int rowIndex = data.size() + 1;
+        RowStyle rowStyle = sheet.getFooterRowStyle();
+        XSSFRow row = xSSFSheet.createRow(rowIndex++);
         row.setHeightInPoints(rowStyle.getHeight());
-        BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
-        for (CellField cellField : footerCellFields) {
-            int cellIndex = cellField.getIndex();
-            XSSFCell cell = row.createCell(cellIndex);
+        int index = 0;
+        for (Object key : footerData.keySet()) {
+            if (key == CRLF) {
+                index = 0;
+                row = xSSFSheet.createRow(rowIndex++);
+                row.setHeightInPoints(rowStyle.getHeight());
+                continue;
+            }
+            XSSFCell cell = row.createCell(index++);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(cellField.getName());
-            cell = row.createCell(cellIndex + 1);
-            Object value = beanDescriptor.getValueByName(cellField.getField());
-            Class<?> type = cellField.getType();
-            String format = cellField.getFormat();
-            setCellValue(cell, cellStyle, value, type, format);
+            cell.setCellValue(key.toString());
+            cell = row.createCell(index++);
             cell.setCellStyle(cellStyle);
+            cell.setCellValue(footerData.get(key).toString());
         }
     }
 
