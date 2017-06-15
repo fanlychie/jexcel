@@ -116,7 +116,7 @@ public class WritableExcel {
         if (footerData == null) {
             footerData = new LinkedHashMap<>();
         } else {
-            footerData.put(CRLF, null);
+            footerData.put(System.currentTimeMillis(), CRLF);
         }
         for (int i = 0; i < length; i += 2) {
             footerData.put(keyValues[i], keyValues[i + 1]);
@@ -237,18 +237,24 @@ public class WritableExcel {
         CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
         int index = 0;
         for (Object key : footerData.keySet()) {
-            if (key == CRLF) {
+            Object value = footerData.get(key);
+            if (value == CRLF) {
                 index = 0;
                 row = xSSFSheet.createRow(rowIndex++);
                 row.setHeightInPoints(rowStyle.getHeight());
                 continue;
+            } else if (value == null) {
+                value = "NULL";
+            }
+            if (key == null) {
+                key = "NULL";
             }
             XSSFCell cell = row.createCell(index++);
             cell.setCellStyle(cellStyle);
             cell.setCellValue(key.toString());
             cell = row.createCell(index++);
             cell.setCellStyle(cellStyle);
-            cell.setCellValue(footerData.get(key).toString());
+            cell.setCellValue(value.toString());
         }
     }
 
