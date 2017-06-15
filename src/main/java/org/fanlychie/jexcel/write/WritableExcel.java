@@ -116,7 +116,7 @@ public class WritableExcel {
         if (footerData == null) {
             footerData = new LinkedHashMap<>();
         } else {
-            footerData.put(System.currentTimeMillis(), CRLF);
+            footerData.put(new Object().hashCode(), CRLF);
         }
         for (int i = 0; i < length; i += 2) {
             footerData.put(keyValues[i], keyValues[i + 1]);
