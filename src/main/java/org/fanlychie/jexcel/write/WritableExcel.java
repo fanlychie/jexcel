@@ -36,6 +36,11 @@ public class WritableExcel {
     private List<?> data;
 
     /**
+     * 脚部数据
+     */
+    private List<?> footerData;
+
+    /**
      * XSSF 工作表
      */
     private XSSFSheet xSSFSheet;
@@ -49,6 +54,11 @@ public class WritableExcel {
      * 单元格注解字段列表
      */
     private List<CellField> cellFields;
+
+    /**
+     * 脚部单元格注解字段列表
+     */
+    private List<CellField> footerCellFields;
 
     /**
      * 布尔值字符串映射表
@@ -94,6 +104,20 @@ public class WritableExcel {
             }
         }
         this.cellFields = AnnotationHandler.parseClass(dataType);
+        return this;
+    }
+
+    /**
+     * 脚部填充数据, 当数据列表为空时, 不创建脚部行
+     *
+     * @param footerData 数据列表
+     * @return 返回当前对象
+     */
+    public WritableExcel footer(List<?> footerData) {
+        this.footerData = footerData;
+        if (footerData != null && footerData.size() > 0) {
+            this.footerCellFields = AnnotationHandler.parseClass(footerData.get(0).getClass());
+        }
         return this;
     }
 
@@ -146,6 +170,13 @@ public class WritableExcel {
                 for (Object item : data) {
                     buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
                 }
+                if (footerData != null && !footerData.isEmpty()) {
+                    RowStyle footerRowStyle = sheet.getFooterRowStyle();
+                    int footerIndex = data.size() + 1;
+                    for (Object item : footerData) {
+                        buildExcelFooterRow(footerRowStyle, footerIndex++, item);
+                    }
+                }
             }
             xSSFWorkbook.write(out);
         } catch (Throwable e) {
@@ -188,6 +219,33 @@ public class WritableExcel {
             XSSFCell cell = row.createCell(cellField.getIndex());
             CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
             cellStyle.setAlignment(cellField.getAlign().getValue());
+            Object value = beanDescriptor.getValueByName(cellField.getField());
+            Class<?> type = cellField.getType();
+            String format = cellField.getFormat();
+            setCellValue(cell, cellStyle, value, type, format);
+            cell.setCellStyle(cellStyle);
+        }
+    }
+
+    /**
+     * 构建 Excel 脚部行内容
+     *
+     * @param rowStyle 行样式
+     * @param index    行索引
+     * @param obj      填充单元格的对象数据
+     * @throws Throwable
+     */
+    private void buildExcelFooterRow(RowStyle rowStyle, int index, Object obj) throws Throwable {
+        XSSFRow row = xSSFSheet.createRow(index);
+        row.setHeightInPoints(rowStyle.getHeight());
+        BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
+        CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
+        for (CellField cellField : footerCellFields) {
+            int cellIndex = cellField.getIndex();
+            XSSFCell cell = row.createCell(cellIndex);
+            cell.setCellStyle(cellStyle);
+            cell.setCellValue(cellField.getName());
+            cell = row.createCell(cellIndex + 1);
             Object value = beanDescriptor.getValueByName(cellField.getField());
             Class<?> type = cellField.getType();
             String format = cellField.getFormat();

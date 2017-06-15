@@ -112,6 +112,7 @@ public final class ExcelExecutor {
         sheet.setCellWidth(20);
         sheet.setBodyRowStyle(buildDefaultBodyRowStyle());
         sheet.setTitleRowStyle(buildDefaultTitleRowStyle());
+        sheet.setFooterRowStyle(buildDefaultFooterRowStyle());
         return sheet;
     }
 
@@ -145,6 +146,22 @@ public final class ExcelExecutor {
         bodyRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         bodyRowStyle.setWrapText(true);
         return bodyRowStyle;
+    }
+
+    /**
+     * 构建默认的脚部行样式
+     */
+    private static RowStyle buildDefaultFooterRowStyle() {
+        RowStyle footerRowStyle = new RowStyle();
+        footerRowStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        footerRowStyle.setBackgroundColor(IndexedColors.LEMON_CHIFFON.index);
+        footerRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
+        footerRowStyle.setFont(12, IndexedColors.ORANGE.index);
+        footerRowStyle.setHeight(28);
+        footerRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+        footerRowStyle.setWrapText(false);
+        footerRowStyle.setFormat(DataFormat.getDefault(String.class));
+        return footerRowStyle;
     }
 
     /**

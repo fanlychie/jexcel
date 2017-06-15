@@ -27,6 +27,11 @@ public class Sheet {
     private RowStyle bodyRowStyle;
 
     /**
+     * 脚部行样式
+     */
+    private RowStyle footerRowStyle;
+
+    /**
      * 构建实例
      *
      * @param name 工作表名称
@@ -63,6 +68,15 @@ public class Sheet {
     }
 
     /**
+     * 设置脚部行样式
+     *
+     * @param footerRowStyle 脚部行样式
+     */
+    public void setFooterRowStyle(RowStyle footerRowStyle) {
+        this.footerRowStyle = footerRowStyle;
+    }
+
+    /**
      * 获取工作表名称
      *
      * @return 返回工作表名称
@@ -96,6 +110,15 @@ public class Sheet {
      */
     RowStyle getBodyRowStyle() {
         return bodyRowStyle;
+    }
+
+    /**
+     * 获取脚部行样式
+     *
+     * @return 返回脚部行样式
+     */
+    RowStyle getFooterRowStyle() {
+        return footerRowStyle;
     }
 
 }
