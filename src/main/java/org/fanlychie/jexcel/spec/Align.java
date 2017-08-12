@@ -1,4 +1,4 @@
-package org.fanlychie.jexcel.write;
+package org.fanlychie.jexcel.spec;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 

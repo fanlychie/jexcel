@@ -4,7 +4,7 @@ package org.fanlychie.jexcel.read;
  * 只读的工作表
  * Created by fanlychie on 2017/3/6.
  */
-public class ReadOnlySheet {
+public class ReadableSheet {
 
     /**
      * 工作表索引

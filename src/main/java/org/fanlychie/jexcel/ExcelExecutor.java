@@ -2,19 +2,16 @@ package org.fanlychie.jexcel;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
-import org.fanlychie.jexcel.read.ReadOnlySheet;
 import org.fanlychie.jexcel.read.ReadableExcel;
-import org.fanlychie.jexcel.write.DataFormat;
+import org.fanlychie.jexcel.read.ReadableSheet;
+import org.fanlychie.jexcel.spec.Format;
 import org.fanlychie.jexcel.write.RowStyle;
-import org.fanlychie.jexcel.write.Sheet;
 import org.fanlychie.jexcel.write.WritableExcel;
+import org.fanlychie.jexcel.write.WritableSheet;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,14 +21,9 @@ import java.util.Map;
 public final class ExcelExecutor {
 
     /**
-     * 默认的工作表
-     */
-    private static final Sheet DEFAULT_SHEET = buildDefaultSheet();
-
-    /**
      * 默认的只读工作表
      */
-    private static final ReadOnlySheet DEFAULT_READ_ONLY_SHEET = buildDefaultReadOnlySheet();
+    private static final ReadableSheet DEFAULT_READ_ONLY_SHEET = buildDefaultReadOnlySheet();
 
     /**
      * 默认的布尔值字符串映射表
@@ -39,30 +31,14 @@ public final class ExcelExecutor {
     private static final Map<Boolean, String> DEFAULT_BOOLEAN_STRING_MAPPING = buildDefaultBooleanStringMapping();
 
     /**
-     * 快速输出 Excel 文件, 若数据列表为空, 则抛出 {@link java.lang.IllegalArgumentException} 异常
+     * 获取一个可写的 Excel 对象
      *
-     * @param data 数据列表
+     * @param dataType 填充工作表的数据类型
      * @return 返回可写的 Excel 对象
      */
-    public static WritableExcel write(Collection<?> data) {
-        return write(data, null);
-    }
-
-    /**
-     * 快速输出 Excel 文件, 当数据列表为空时, 输出一个除了标题无实体内容的文件
-     *
-     * @param data     数据列表
-     * @param dataType 数据类型
-     * @return 返回可写的 Excel 对象
-     */
-    public static WritableExcel write(Collection<?> data, Class<?> dataType) {
-        List<?> dataList = null;
-        if (data instanceof List) {
-            dataList = (List<?>) data;
-        } else {
-            dataList = new ArrayList<>(data);
-        }
-        return new WritableExcel(DEFAULT_SHEET).booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING).data(dataList, dataType);
+    public static WritableExcel getWritableExcel(Class<?> dataType) {
+        return new WritableExcel(buildDefaultWritableSheet(dataType))
+                .booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING);
     }
 
     /**
@@ -96,24 +72,14 @@ public final class ExcelExecutor {
     }
 
     /**
-     * 获取默认的工作表
-     *
-     * @return 返回默认的工作表对象
-     */
-    public static Sheet getDefaultSheet() {
-        return DEFAULT_SHEET;
-    }
-
-    /**
      * 构建默认的工作表对象
      */
-    private static Sheet buildDefaultSheet() {
-        Sheet sheet = new Sheet("Sheet1");
-        sheet.setCellWidth(20);
-        sheet.setBodyRowStyle(buildDefaultBodyRowStyle());
-        sheet.setTitleRowStyle(buildDefaultTitleRowStyle());
-        sheet.setFooterRowStyle(buildDefaultFooterRowStyle());
-        return sheet;
+    private static WritableSheet buildDefaultWritableSheet(Class<?> dataType) {
+        WritableSheet writableSheet = new WritableSheet(dataType);
+        writableSheet.setCellWidth(20);
+        writableSheet.setBodyRowStyle(buildDefaultBodyRowStyle());
+        writableSheet.setTitleRowStyle(buildDefaultTitleRowStyle());
+        return writableSheet;
     }
 
     /**
@@ -129,7 +95,7 @@ public final class ExcelExecutor {
         titleRowStyle.setHeight(28);
         titleRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         titleRowStyle.setWrapText(false);
-        titleRowStyle.setFormat(DataFormat.getDefault(String.class));
+        titleRowStyle.setFormat(Format.getDefault(String.class));
         return titleRowStyle;
     }
 
@@ -149,22 +115,6 @@ public final class ExcelExecutor {
     }
 
     /**
-     * 构建默认的脚部行样式
-     */
-    private static RowStyle buildDefaultFooterRowStyle() {
-        RowStyle footerRowStyle = new RowStyle();
-        footerRowStyle.setAlignment(CellStyle.ALIGN_CENTER);
-        footerRowStyle.setBackgroundColor(IndexedColors.LEMON_CHIFFON.index);
-        footerRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
-        footerRowStyle.setFont(12, IndexedColors.ORANGE.index);
-        footerRowStyle.setHeight(28);
-        footerRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        footerRowStyle.setWrapText(false);
-        footerRowStyle.setFormat(DataFormat.getDefault(String.class));
-        return footerRowStyle;
-    }
-
-    /**
      * 构建默认的布尔值字符串映射表
      */
     private static Map<Boolean, String> buildDefaultBooleanStringMapping() {
@@ -177,11 +127,11 @@ public final class ExcelExecutor {
     /**
      * 构建只读的工作表
      */
-    private static ReadOnlySheet buildDefaultReadOnlySheet() {
-        ReadOnlySheet readOnlySheet = new ReadOnlySheet();
-        readOnlySheet.setIndex(0);
-        readOnlySheet.setFirstRowNum(2);
-        return readOnlySheet;
+    private static ReadableSheet buildDefaultReadOnlySheet() {
+        ReadableSheet readableSheet = new ReadableSheet();
+        readableSheet.setIndex(0);
+        readableSheet.setFirstRowNum(2);
+        return readableSheet;
     }
 
     /**

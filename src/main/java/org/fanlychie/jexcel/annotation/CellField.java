@@ -1,6 +1,6 @@
 package org.fanlychie.jexcel.annotation;
 
-import org.fanlychie.jexcel.write.Align;
+import org.fanlychie.jexcel.spec.Align;
 
 /**
  * 单元格注解字段

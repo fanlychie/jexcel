@@ -2,7 +2,7 @@ package org.fanlychie.jexcel.write;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 /**
  * 行样式
@@ -180,7 +180,7 @@ public class RowStyle {
      * @param workbook 工作薄
      * @return 返回单元格样式
      */
-    CellStyle getCellStyle(XSSFWorkbook workbook) {
+    CellStyle getCellStyle(SXSSFWorkbook workbook) {
         CellStyle cellStyle = workbook.createCellStyle();
         if (alignment != null) {
             cellStyle.setAlignment(alignment);
@@ -219,7 +219,7 @@ public class RowStyle {
      *
      * @return {@link org.apache.poi.ss.usermodel.Font}
      */
-    private Font createFont(XSSFWorkbook workbook) {
+    private Font createFont(SXSSFWorkbook workbook) {
         Font font = workbook.createFont();
         font.setColor(fontColor);
         font.setFontHeightInPoints(fontSize.shortValue());

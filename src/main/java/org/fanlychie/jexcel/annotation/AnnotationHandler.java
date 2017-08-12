@@ -1,6 +1,6 @@
 package org.fanlychie.jexcel.annotation;
 
-import org.fanlychie.jexcel.write.DataFormat;
+import org.fanlychie.jexcel.spec.Format;
 import org.fanlychie.jreflect.BeanDescriptor;
 import org.fanlychie.jreflect.FieldDescriptor;
 
@@ -60,7 +60,7 @@ public final class AnnotationHandler {
             if (format != null && !format.isEmpty()) {
                 cellField.setFormat(format);
             } else {
-                cellField.setFormat(DataFormat.getDefault(field.getType()));
+                cellField.setFormat(Format.getDefault(field.getType()));
             }
             cellFields.add(cellField);
         }
@@ -78,7 +78,7 @@ public final class AnnotationHandler {
         FieldDescriptor fieldDescriptor = beanDescriptor.getFieldDescriptor();
         Map<Field, Cell> annotationMap = fieldDescriptor.getFieldAnnotationMap(Cell.class);
         if (annotationMap.isEmpty()) {
-            throw new UnsupportedOperationException("you must mark the data field with the @Cell annotation in " + targetClass);
+            throw new UnsupportedOperationException("you must mark the addSheet field with the @Cell annotation in " + targetClass);
         }
         return annotationMap;
     }

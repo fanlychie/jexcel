@@ -4,7 +4,7 @@ package org.fanlychie.jexcel.write;
  * 工作表
  * Created by fanlychie on 2017/3/4.
  */
-public class Sheet {
+public class WritableSheet {
 
     /**
      * 工作表名称
@@ -17,6 +17,11 @@ public class Sheet {
     private int cellWidth;
 
     /**
+     * 填充工作表的数据类型
+     */
+    private Class<?> dataType;
+
+    /**
      * 标题行样式
      */
     private RowStyle titleRowStyle;
@@ -27,16 +32,20 @@ public class Sheet {
     private RowStyle bodyRowStyle;
 
     /**
-     * 脚部行样式
-     */
-    private RowStyle footerRowStyle;
-
-    /**
      * 构建实例
      *
-     * @param name 工作表名称
+     * @param dataType 填充工作表的数据类型
      */
-    public Sheet(String name) {
+    public WritableSheet(Class<?> dataType) {
+        this.dataType = dataType;
+    }
+
+    /**
+     * 设置工作表的名称
+     *
+     * @param name 工作表的名称
+     */
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -68,20 +77,11 @@ public class Sheet {
     }
 
     /**
-     * 设置脚部行样式
-     *
-     * @param footerRowStyle 脚部行样式
-     */
-    public void setFooterRowStyle(RowStyle footerRowStyle) {
-        this.footerRowStyle = footerRowStyle;
-    }
-
-    /**
      * 获取工作表名称
      *
      * @return 返回工作表名称
      */
-    String getName() {
+    public String getName() {
         return name;
     }
 
@@ -90,8 +90,17 @@ public class Sheet {
      *
      * @return 返回单元格宽度
      */
-    int getCellWidth() {
+    public int getCellWidth() {
         return cellWidth * 256 + 184;
+    }
+
+    /**
+     * 获取填充工作表的数据类型
+     *
+     * @return 返回填充工作表的数据类型
+     */
+    public Class<?> getDataType() {
+        return dataType;
     }
 
     /**
@@ -99,7 +108,7 @@ public class Sheet {
      *
      * @return 返回标题行样式
      */
-    RowStyle getTitleRowStyle() {
+    public RowStyle getTitleRowStyle() {
         return titleRowStyle;
     }
 
@@ -108,17 +117,8 @@ public class Sheet {
      *
      * @return 返回主体行样式
      */
-    RowStyle getBodyRowStyle() {
+    public RowStyle getBodyRowStyle() {
         return bodyRowStyle;
-    }
-
-    /**
-     * 获取脚部行样式
-     *
-     * @return 返回脚部行样式
-     */
-    RowStyle getFooterRowStyle() {
-        return footerRowStyle;
     }
 
 }

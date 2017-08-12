@@ -32,15 +32,15 @@ public class ReadableExcel {
     /**
      * 只读的工作表
      */
-    private ReadOnlySheet readOnlySheet;
+    private ReadableSheet readableSheet;
 
     /**
      * 构建实例
      *
-     * @param readOnlySheet 只读的工作表
+     * @param readableSheet 只读的工作表
      */
-    public ReadableExcel(ReadOnlySheet readOnlySheet) {
-        this.readOnlySheet = readOnlySheet;
+    public ReadableExcel(ReadableSheet readableSheet) {
+        this.readableSheet = readableSheet;
     }
 
     /**
@@ -90,12 +90,12 @@ public class ReadableExcel {
         try {
             Workbook workbook = WorkbookFactory.create(inputStream);
             Sheet sheet = null;
-            if (readOnlySheet.getName() != null) {
-                sheet = workbook.getSheet(readOnlySheet.getName());
+            if (readableSheet.getName() != null) {
+                sheet = workbook.getSheet(readableSheet.getName());
             } else {
-                sheet = workbook.getSheetAt(readOnlySheet.getIndex());
+                sheet = workbook.getSheetAt(readableSheet.getIndex());
             }
-            int firstRowNum = readOnlySheet.getFirstRowNum();
+            int firstRowNum = readableSheet.getFirstRowNum();
             if (firstRowNum > 0) {
                 firstRowNum--;
             }

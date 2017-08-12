@@ -1,22 +1,24 @@
 package org.fanlychie.jexcel.write;
 
 import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.xssf.usermodel.XSSFCell;
-import org.apache.poi.xssf.usermodel.XSSFDataFormat;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.xssf.streaming.SXSSFCell;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.jexcel.exception.ExcelCastException;
+import org.fanlychie.jexcel.spec.Format;
+import org.fanlychie.jexcel.spec.Sheet;
 import org.fanlychie.jreflect.BeanDescriptor;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,27 +31,17 @@ public class WritableExcel {
     /**
      * 工作表
      */
-    private Sheet sheet;
+    private WritableSheet writableSheet;
 
     /**
-     * 数据列表
+     * SXSSF 工作表
      */
-    private List<?> data;
+    private SXSSFSheet sxssfSheet;
 
     /**
-     * 脚部数据
+     * SXSSF 工作薄
      */
-    private Map<Object, Object> footerData;
-
-    /**
-     * XSSF 工作表
-     */
-    private XSSFSheet xSSFSheet;
-
-    /**
-     * XSSF 工作薄
-     */
-    private XSSFWorkbook xSSFWorkbook;
+    private SXSSFWorkbook sxssfWorkbook;
 
     /**
      * 单元格注解字段列表
@@ -61,67 +53,108 @@ public class WritableExcel {
      */
     private Map<Boolean, String> booleanStringMapping;
 
-    private static final Object CRLF = "CRLF";
+    /**
+     * 工作表计数
+     */
+    private int sheetCount = 1;
+
+    /**
+     * 单元格样式缓存
+     */
+    private static final Map<CellField, CellStyle> CELL_STYLE_CACHE_MAP = new HashMap<>();
 
     /**
      * 构建实例
      *
-     * @param sheet 工作表
+     * @param writableSheet 工作表
      */
-    public WritableExcel(Sheet sheet) {
-        this.sheet = sheet;
-    }
-
-    /**
-     * 填充数据, 若数据列表为空, 则抛出 {@link java.lang.IllegalArgumentException} 异常
-     *
-     * @param data 数据列表
-     * @return 返回当前对象
-     */
-    public WritableExcel data(List<?> data) {
-        if (data == null || data.size() == 0) {
-            throw new IllegalArgumentException("data can not be empty");
+    public WritableExcel(WritableSheet writableSheet) {
+        this.writableSheet = writableSheet;
+        this.sxssfWorkbook = new SXSSFWorkbook();
+        if (writableSheet.getDataType() == null) {
+            throw new IllegalArgumentException("dataType can not be null");
         }
-        return data(data, data.get(0).getClass());
+        this.cellFields = AnnotationHandler.parseClass(writableSheet.getDataType());
+        this.initCellStyles();
     }
 
     /**
      * 填充数据, 当数据列表为空时, 输出一个除了标题无实体内容的文件
      *
-     * @param data     数据列表
-     * @param dataType 数据类型
+     * @param data 数据列表
      * @return 返回当前对象
      */
-    public WritableExcel data(List<?> data, Class<?> dataType) {
-        this.data = data;
-        if (dataType == null) {
-            if (data == null && data.isEmpty()) {
-                throw new IllegalArgumentException("data and type can not be empty at the same time");
-            } else {
-                dataType = data.get(0).getClass();
+    public WritableExcel addSheet(List<?> data) {
+        try {
+            String sheetName = Sheet.getName(sheetCount++, writableSheet.getName());
+            sxssfSheet = sxssfWorkbook.createSheet(sheetName);
+            buildExcelTitleRow();
+            if (data != null && !data.isEmpty()) {
+                RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
+                int bodyIndex = bodyRowStyle.getIndex();
+                for (Object item : data) {
+                    buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
+                }
             }
+            return this;
+        } catch (Throwable e) {
+            throw new ExcelCastException(e);
         }
-        this.cellFields = AnnotationHandler.parseClass(dataType);
-        return this;
     }
 
     /**
-     * 脚部填充数据
+     * 输出到文件
      *
-     * @param keyValues 行数据列表
-     * @return 返回当前对象
+     * @param pathname 文件路径名称
      */
-    public WritableExcel addFooter(Object... keyValues) {
-        int length = keyValues.length;
-        if (footerData == null) {
-            footerData = new LinkedHashMap<>();
-        } else {
-            footerData.put(new Object().hashCode(), CRLF);
+    public void toFile(String pathname) {
+        try {
+            sxssfWorkbook.write(new FileOutputStream(new File(pathname)));
+        } catch (Throwable e) {
+            throw new ExcelCastException(e);
         }
-        for (int i = 0; i < length; i += 2) {
-            footerData.put(keyValues[i], keyValues[i + 1]);
+    }
+
+    /**
+     * 输出到文件
+     *
+     * @param file 文件对象
+     */
+    public void toFile(File file) {
+        OutputStream os = null;
+        try {
+            sxssfWorkbook.write(os);
+        } catch (Throwable e) {
+            throw new ExcelCastException(e);
+        } finally {
+            if (os != null) {
+                try {
+                    os.close();
+                } catch (IOException e) {}
+            }
         }
-        return this;
+    }
+
+    /**
+     * 输出到输出流
+     *
+     * @param os 输出流
+     */
+    public void toStream(OutputStream os) {
+        try {
+            sxssfWorkbook.write(os);
+        } catch (Throwable e) {
+            throw new ExcelCastException(e);
+        }
+    }
+
+    /**
+     * 获取可写的工作表对象
+     *
+     * @return 返回可写的工作表对象
+     */
+    public WritableSheet getWritableSheet() {
+        return writableSheet;
     }
 
     /**
@@ -136,50 +169,17 @@ public class WritableExcel {
     }
 
     /**
-     * 输出到文件
-     *
-     * @param pathname 文件路径名称
+     * 初始化单元格样式
      */
-    public void toFile(String pathname) {
-        toFile(new File(pathname));
-    }
-
-    /**
-     * 输出到文件
-     *
-     * @param file 文件对象
-     */
-    public void toFile(File file) {
-        try {
-            toStream(new FileOutputStream(file));
-        } catch (FileNotFoundException e) {
-            throw new ExcelCastException(e);
+    private void initCellStyles() {
+        if (!CELL_STYLE_CACHE_MAP.containsKey(null)) {
+            CELL_STYLE_CACHE_MAP.put(null, writableSheet.getTitleRowStyle().getCellStyle(sxssfWorkbook));
         }
-    }
-
-    /**
-     * 写出到输出流
-     *
-     * @param out 输出流
-     */
-    public void toStream(OutputStream out) {
-        try {
-            this.xSSFWorkbook = new XSSFWorkbook();
-            this.xSSFSheet = xSSFWorkbook.createSheet(sheet.getName());
-            buildExcelTitleRow();
-            if (data != null && !data.isEmpty()) {
-                RowStyle bodyRowStyle = sheet.getBodyRowStyle();
-                int bodyIndex = bodyRowStyle.getIndex();
-                for (Object item : data) {
-                    buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
-                }
-                if (footerData != null) {
-                    buildExcelFooterRow();
-                }
+        RowStyle rowStyle = writableSheet.getBodyRowStyle();
+        for (CellField cellField : cellFields) {
+            if (!CELL_STYLE_CACHE_MAP.containsKey(cellField)) {
+                CELL_STYLE_CACHE_MAP.put(cellField, rowStyle.getCellStyle(sxssfWorkbook));
             }
-            xSSFWorkbook.write(out);
-        } catch (Throwable e) {
-            throw new ExcelCastException(e);
         }
     }
 
@@ -189,15 +189,14 @@ public class WritableExcel {
      * @throws Throwable
      */
     private void buildExcelTitleRow() throws Throwable {
-        RowStyle rowStyle = sheet.getTitleRowStyle();
-        XSSFRow row = xSSFSheet.createRow(rowStyle.getIndex());
+        RowStyle rowStyle = writableSheet.getTitleRowStyle();
+        SXSSFRow row = sxssfSheet.createRow(rowStyle.getIndex());
         row.setHeightInPoints(rowStyle.getHeight());
-        CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
         for (CellField cellField : cellFields) {
             int index = cellField.getIndex();
-            xSSFSheet.setColumnWidth(index, sheet.getCellWidth());
-            XSSFCell cell = row.createCell(index);
-            cell.setCellStyle(cellStyle);
+            sxssfSheet.setColumnWidth(index, writableSheet.getCellWidth());
+            SXSSFCell cell = row.createCell(index);
+            cell.setCellStyle(CELL_STYLE_CACHE_MAP.get(null));
             cell.setCellValue(cellField.getName());
         }
     }
@@ -205,56 +204,24 @@ public class WritableExcel {
     /**
      * 构建 Excel 主体行内容
      *
-     * @param rowStyle 行样式
-     * @param index    行索引
-     * @param obj      填充单元格的对象数据
+     * @param rowStyle  行样式
+     * @param index     行索引
+     * @param obj       填充单元格的对象数据
      * @throws Throwable
      */
     private void buildExcelBodyRow(RowStyle rowStyle, int index, Object obj) throws Throwable {
-        XSSFRow row = xSSFSheet.createRow(index);
+        SXSSFRow row = sxssfSheet.createRow(index);
         row.setHeightInPoints(rowStyle.getHeight());
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         for (CellField cellField : cellFields) {
-            XSSFCell cell = row.createCell(cellField.getIndex());
-            CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
+            SXSSFCell cell = row.createCell(cellField.getIndex());
+            CellStyle cellStyle = CELL_STYLE_CACHE_MAP.get(cellField);
             cellStyle.setAlignment(cellField.getAlign().getValue());
             Object value = beanDescriptor.getValueByName(cellField.getField());
             Class<?> type = cellField.getType();
             String format = cellField.getFormat();
             setCellValue(cell, cellStyle, value, type, format);
             cell.setCellStyle(cellStyle);
-        }
-    }
-
-    /**
-     * 构建 Excel 脚部行内容
-     */
-    private void buildExcelFooterRow() {
-        int rowIndex = data.size() + 1;
-        RowStyle rowStyle = sheet.getFooterRowStyle();
-        XSSFRow row = xSSFSheet.createRow(rowIndex++);
-        row.setHeightInPoints(rowStyle.getHeight());
-        CellStyle cellStyle = rowStyle.getCellStyle(xSSFWorkbook);
-        int index = 0;
-        for (Object key : footerData.keySet()) {
-            Object value = footerData.get(key);
-            if (value == CRLF) {
-                index = 0;
-                row = xSSFSheet.createRow(rowIndex++);
-                row.setHeightInPoints(rowStyle.getHeight());
-                continue;
-            } else if (value == null) {
-                value = "NULL";
-            }
-            if (key == null) {
-                key = "NULL";
-            }
-            XSSFCell cell = row.createCell(index++);
-            cell.setCellStyle(cellStyle);
-            cell.setCellValue(key.toString());
-            cell = row.createCell(index++);
-            cell.setCellStyle(cellStyle);
-            cell.setCellValue(value.toString());
         }
     }
 
@@ -267,7 +234,7 @@ public class WritableExcel {
      * @param type      值的类型
      * @param format    数据格式
      */
-    private void setCellValue(XSSFCell cell, CellStyle cellStyle, Object value, Class<?> type, String format) {
+    private void setCellValue(SXSSFCell cell, CellStyle cellStyle, Object value, Class<?> type, String format) {
         if (value == null) {
             setCellStringValue(cell, cellStyle, "");
         } else if (type == Boolean.TYPE || type == Boolean.class) {
@@ -290,9 +257,9 @@ public class WritableExcel {
      * @param cellStyle 单元格样式
      * @param value     值
      */
-    private void setCellStringValue(XSSFCell cell, CellStyle cellStyle, String value) {
+    private void setCellStringValue(SXSSFCell cell, CellStyle cellStyle, String value) {
         cell.setCellValue(value);
-        setCellDataFormat(cellStyle, DataFormat.STRING_FORMAT);
+        setCellDataFormat(cellStyle, Format.STRING);
     }
 
     /**
@@ -303,7 +270,7 @@ public class WritableExcel {
      * @param value     值
      * @param format    数据格式
      */
-    private void setCellBooleanValue(XSSFCell cell, CellStyle cellStyle, Object value, String format) {
+    private void setCellBooleanValue(SXSSFCell cell, CellStyle cellStyle, Object value, String format) {
         boolean boolValue = (boolean) value;
         if (booleanStringMapping != null) {
             String booleanStr = booleanStringMapping.get(boolValue);
@@ -326,7 +293,7 @@ public class WritableExcel {
      * @param format    数据格式
      */
     private void setCellDataFormat(CellStyle cellStyle, String format) {
-        XSSFDataFormat formatter = xSSFWorkbook.createDataFormat();
+        DataFormat formatter = sxssfWorkbook.createDataFormat();
         short dataFormat = formatter.getFormat(format);
         cellStyle.setDataFormat(dataFormat);
     }
