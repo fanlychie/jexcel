@@ -119,8 +119,8 @@ public final class ExcelExecutor {
      */
     private static Map<Boolean, String> buildDefaultBooleanStringMapping() {
         Map<Boolean, String> mapping = new HashMap<>();
-        mapping.put(true, "是");
-        mapping.put(false, "否");
+        mapping.put(true, "Y");
+        mapping.put(false, "N");
         return mapping;
     }
 
