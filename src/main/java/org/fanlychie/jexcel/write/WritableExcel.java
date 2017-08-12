@@ -18,7 +18,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,11 +58,6 @@ public class WritableExcel {
     private int sheetCount = 1;
 
     /**
-     * 单元格样式缓存
-     */
-    private static final Map<CellField, CellStyle> CELL_STYLE_CACHE_MAP = new HashMap<>();
-
-    /**
      * 构建实例
      *
      * @param writableSheet 工作表
@@ -75,7 +69,6 @@ public class WritableExcel {
             throw new IllegalArgumentException("dataType can not be null");
         }
         this.cellFields = AnnotationHandler.parseClass(writableSheet.getDataType());
-        this.initCellStyles();
     }
 
     /**
@@ -169,21 +162,6 @@ public class WritableExcel {
     }
 
     /**
-     * 初始化单元格样式
-     */
-    private void initCellStyles() {
-        if (!CELL_STYLE_CACHE_MAP.containsKey(null)) {
-            CELL_STYLE_CACHE_MAP.put(null, writableSheet.getTitleRowStyle().getCellStyle(sxssfWorkbook));
-        }
-        RowStyle rowStyle = writableSheet.getBodyRowStyle();
-        for (CellField cellField : cellFields) {
-            if (!CELL_STYLE_CACHE_MAP.containsKey(cellField)) {
-                CELL_STYLE_CACHE_MAP.put(cellField, rowStyle.getCellStyle(sxssfWorkbook));
-            }
-        }
-    }
-
-    /**
      * 构建 Excel 标题行内容
      *
      * @throws Throwable
@@ -196,7 +174,7 @@ public class WritableExcel {
             int index = cellField.getIndex();
             sxssfSheet.setColumnWidth(index, writableSheet.getCellWidth());
             SXSSFCell cell = row.createCell(index);
-            cell.setCellStyle(CELL_STYLE_CACHE_MAP.get(null));
+            cell.setCellStyle(rowStyle.getCellStyle(sxssfWorkbook, null));
             cell.setCellValue(cellField.getName());
         }
     }
@@ -215,7 +193,7 @@ public class WritableExcel {
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         for (CellField cellField : cellFields) {
             SXSSFCell cell = row.createCell(cellField.getIndex());
-            CellStyle cellStyle = CELL_STYLE_CACHE_MAP.get(cellField);
+            CellStyle cellStyle = rowStyle.getCellStyle(sxssfWorkbook, cellField);
             cellStyle.setAlignment(cellField.getAlign().getValue());
             Object value = beanDescriptor.getValueByName(cellField.getField());
             Class<?> type = cellField.getType();
