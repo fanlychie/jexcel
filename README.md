@@ -14,7 +14,7 @@
 <dependency>
     <groupId>org.fanlychie</groupId>
     <artifactId>jexcel</artifactId>
-    <version>1.0.3</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 
@@ -65,7 +65,10 @@ public class User {
 
  ```java
 public static void main(String[] args) {
+    // 2.0 之前, 不支持大量数据导出
     ExcelExecutor.write(getUsers()).toFile("D:\\test.xlsx");
+    // 2.0 之后, 支持大量数据导出
+    ExcelExecutor.getWritableExcel(User.class).addSheet(getUsers()).toFile("D:\\test.xlsx");
 }
 
 // 模拟数据
@@ -86,6 +89,9 @@ private static List<User> getUsers() {
 
 ```java
 public static void main(String[] args) {
+    // 2.0 之前, 不支持大量数据导入
 	List<User> list = ExcelExecutor.read("D:\\test.xlsx").parse(User.class);
+    // 2.0 之后, 支持大量数据导入
+	List<User> list = ExcelExecutor.getReadableExcel("D:\\test.xlsx").parseAllSheet(User.class);
 }
 ```
