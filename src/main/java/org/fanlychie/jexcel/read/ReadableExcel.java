@@ -1,22 +1,28 @@
 package org.fanlychie.jexcel.read;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.eventusermodel.XSSFReader.SheetIterator;
+import org.apache.poi.xssf.model.StylesTable;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
-import org.fanlychie.jreflect.BeanDescriptor;
 import org.fanlychie.jexcel.exception.ExcelCastException;
+import org.fanlychie.jexcel.exception.ReadExcelException;
+import org.fanlychie.jreflect.BeanDescriptor;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
+import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 可读的 Excel, 用于读取 Excel 文件
@@ -24,134 +30,154 @@ import java.util.List;
  */
 public class ReadableExcel {
 
-    /**
-     * 文件输入流
-     */
-    private InputStream inputStream;
+    private StylesTable stylesTable;
+
+    private SheetIterator sheetIterator;
+
+    private ReadOnlySharedStringsTable sharedStringsTable;
+
+    private int startRow;
+
+    private Map<Integer, CellField> cellFieldMap;
+
+    private BeanDescriptor beanDescriptor;
 
     /**
-     * 只读的工作表
-     */
-    private ReadableSheet readableSheet;
-
-    /**
-     * 构建实例
+     * 构建一个可读的 Excel 对象
      *
-     * @param readableSheet 只读的工作表
+     * @param excelFile Excel 文件
      */
-    public ReadableExcel(ReadableSheet readableSheet) {
-        this.readableSheet = readableSheet;
-    }
-
-    /**
-     * 载入 Excel 文件
-     *
-     * @param file Excel 文件
-     * @return 返回当前对象
-     */
-    public ReadableExcel load(File file) {
+    public ReadableExcel(File excelFile) {
         try {
-            this.inputStream = new FileInputStream(file);
-            return this;
-        } catch (FileNotFoundException e) {
-            throw new ExcelCastException(e);
-        }
-    }
-
-    /**
-     * 载入 Excel 文件
-     *
-     * @param pathname Excel 文件路径名称
-     * @return 返回当前对象
-     */
-    public ReadableExcel load(String pathname) {
-        return load(new File(pathname));
-    }
-
-    /**
-     * 载入 Excel 文件流
-     *
-     * @param inputStream Excel 文件输入流
-     * @return 返回当前对象
-     */
-    public ReadableExcel load(InputStream inputStream) {
-        this.inputStream = inputStream;
-        return this;
-    }
-
-    /**
-     * 解析 Excel 文档内容
-     *
-     * @param targetClass 目标类, 每一行的内容解析为此类的一个实例
-     * @param <T>         目标类型
-     * @return 返回解析的数据列表
-     */
-    public <T> List<T> parse(Class<T> targetClass) {
-        try {
-            Workbook workbook = WorkbookFactory.create(inputStream);
-            Sheet sheet = null;
-            if (readableSheet.getName() != null) {
-                sheet = workbook.getSheet(readableSheet.getName());
-            } else {
-                sheet = workbook.getSheetAt(readableSheet.getIndex());
-            }
-            int firstRowNum = readableSheet.getFirstRowNum();
-            if (firstRowNum > 0) {
-                firstRowNum--;
-            }
-            int lastRowNum = sheet.getLastRowNum();
-            List<T> list = new ArrayList<>();
-            List<CellField> cellFields = AnnotationHandler.parseClass(targetClass);
-            for (int i = firstRowNum; i <= lastRowNum; i++) {
-                list.add(convertRowToObject(sheet.getRow(i), targetClass, cellFields));
-            }
-            return list;
+            OPCPackage opcPackage = OPCPackage.open(excelFile);
+            XSSFReader reader = new XSSFReader(opcPackage);
+            this.sharedStringsTable = new ReadOnlySharedStringsTable(opcPackage);
+            this.stylesTable = reader.getStylesTable();
+            this.sheetIterator = (SheetIterator) reader.getSheetsData();
         } catch (Throwable e) {
             throw new ExcelCastException(e);
         }
     }
 
     /**
-     * 将行内容转换为对象表示
+     * 构建一个可读的 Excel 对象
      *
-     * @param row         行对象
-     * @param targetClass 目标类
-     * @param cellFields  单元格注解字段列表
-     * @param <T>         目标类
-     * @return 返回内容转换为的对象
+     * @param excelFilePath Excel 文件路径
      */
-    private <T> T convertRowToObject(Row row, Class<T> targetClass, List<CellField> cellFields) {
-        BeanDescriptor beanDescriptor = new BeanDescriptor(targetClass);
-        T obj = beanDescriptor.newInstance();
-        int size = cellFields.size();
-        for (int i = 0; i < size; i++) {
-            Cell cell = row.getCell(i);
-            CellField cellField = cellFields.get(i);
-            String field = cellField.getField();
-            Class<?> type = cellField.getType();
-            Object value = getCellValue(cell, type);
-            beanDescriptor.setValueByName(field, value);
-        }
-        return obj;
+    public ReadableExcel(String excelFilePath) {
+        this(new File(excelFilePath));
     }
 
     /**
-     * 获取单元格的值
+     * 解析工作表
      *
-     * @param cell 单元格对象
-     * @param type 数据类型
-     * @return 返回单元格数据类型的值
+     * @param index       工作表索引, 从1开始
+     * @param targetClass 目标类型
+     * @param <T>
+     * @return 返回解析的结果列表
      */
-    private Object getCellValue(Cell cell, Class<?> type) {
-        if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
-            return null;
+    public <T> List<T> parseSheetAt(int index, Class<T> targetClass) {
+        init(targetClass);
+        int sheetCount = 1;
+        while (true) {
+            if (sheetIterator.hasNext()) {
+                if (index == sheetCount) {
+                    return processSheet(targetClass);
+                } else {
+                    ++sheetCount;
+                    sheetIterator.next();
+                }
+            } else {
+                break;
+            }
         }
-        if (type == Date.class) {
-            return cell.getDateCellValue();
+        throw new ReadExcelException("can not found sheet index : " + index);
+    }
+
+    /**
+     * 解析所有的工作表
+     *
+     * @param targetClass 目标类型
+     * @param <T>
+     * @return 返回解析的结果列表
+     */
+    public <T> List<T> parseAllSheet(Class<T> targetClass) {
+        init(targetClass);
+        List<T> list = new LinkedList<>();
+        list.addAll(processSheet(targetClass));
+        return list;
+    }
+
+    /**
+     * 设置解析的起始行, 从1开始
+     *
+     * @param startRow 起始行, 从1开始
+     * @return 返回当前对象
+     */
+    public ReadableExcel setStartRow(int startRow) {
+        this.startRow = startRow;
+        return this;
+    }
+
+    // 初始化工作
+    private void init(Class<?> targetClass) {
+        this.cellFieldMap = new HashMap<>();
+        this.beanDescriptor = new BeanDescriptor(targetClass);
+        List<CellField> cellFields = AnnotationHandler.parseClass(targetClass);
+        for (CellField cellField : cellFields) {
+            cellFieldMap.put(cellField.getIndex(), cellField);
         }
-        cell.setCellType(Cell.CELL_TYPE_STRING);
-        String cellStringValue = cell.getStringCellValue();
-        return ValueConverter.convertObjectValue(cellStringValue, type);
+    }
+
+    // 解析工作表
+    private void parseSheet(InputStream sheetInputStream, final List list) throws Throwable {
+        XMLReader sheetParser = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
+        sheetParser.setContentHandler(new XSSFSheetHandler(stylesTable, sharedStringsTable) {
+            Object item = beanDescriptor.newInstance();
+            @Override
+            public void postCellHandle(int index, String name, String value, int row, boolean newRow) {
+                if (row >= startRow) {
+                    if (newRow) {
+                        if (!list.isEmpty() || startRow != row) {
+                            list.add(item);
+                        }
+                        item = beanDescriptor.newInstance();
+                    }
+                    CellField cellField = cellFieldMap.get(index);
+                    try {
+                        Object cellValue = ValueConverter.convertObjectValue(value, cellField.getType());
+                        beanDescriptor.setValueByName(cellField.getField(), cellValue);
+                    } catch (Exception e) {
+                        throw new ReadExcelException("Parse " + name + " error : " + e);
+                    }
+                }
+            }
+
+            @Override
+            public void endDocument() throws SAXException {
+                list.add(item);
+            }
+        });
+        sheetParser.parse(new InputSource(sheetInputStream));
+    }
+
+    // 处理工作表
+    private <T> List<T> processSheet(Class<T> targetClass) {
+        InputStream stream = null;
+        try {
+            stream = sheetIterator.next();
+            List<T> list = new ArrayList<>();
+            parseSheet(stream, list);
+            return list;
+        } catch (Throwable e) {
+            throw new ExcelCastException(e);
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {}
+            }
+        }
     }
 
 }

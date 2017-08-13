@@ -3,14 +3,12 @@ package org.fanlychie.jexcel;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.fanlychie.jexcel.read.ReadableExcel;
-import org.fanlychie.jexcel.read.ReadableSheet;
 import org.fanlychie.jexcel.spec.Format;
 import org.fanlychie.jexcel.write.RowStyle;
 import org.fanlychie.jexcel.write.WritableExcel;
 import org.fanlychie.jexcel.write.WritableSheet;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,11 +17,6 @@ import java.util.Map;
  * Created by fanlychie on 2017/3/5.
  */
 public final class ExcelExecutor {
-
-    /**
-     * 默认的只读工作表
-     */
-    private static final ReadableSheet DEFAULT_READ_ONLY_SHEET = buildDefaultReadOnlySheet();
 
     /**
      * 默认的布尔值字符串映射表
@@ -42,33 +35,23 @@ public final class ExcelExecutor {
     }
 
     /**
-     * 快速读取 Excel 文件
+     * 获取一个可读的 Excel 对象
      *
-     * @param file Excel 文件
+     * @param excelFile Excel 文件
      * @return 返回可读的 Excel 对象
      */
-    public static ReadableExcel read(File file) {
-        return new ReadableExcel(DEFAULT_READ_ONLY_SHEET).load(file);
+    public static ReadableExcel getReadableExcel(File excelFile) {
+        return new ReadableExcel(excelFile).setStartRow(2);
     }
 
     /**
-     * 快速读取 Excel 文件
+     * 获取一个可读的 Excel 对象
      *
-     * @param pathname Excel 文件路径名称
+     * @param excelFilePath Excel 文件路径
      * @return 返回可读的 Excel 对象
      */
-    public static ReadableExcel read(String pathname) {
-        return new ReadableExcel(DEFAULT_READ_ONLY_SHEET).load(pathname);
-    }
-
-    /**
-     * 快速读取 Excel 文件流
-     *
-     * @param inputStream Excel 输入流
-     * @return 返回可读的 Excel 对象
-     */
-    public static ReadableExcel read(InputStream inputStream) {
-        return new ReadableExcel(DEFAULT_READ_ONLY_SHEET).load(inputStream);
+    public static ReadableExcel getReadableExcel(String excelFilePath) {
+        return new ReadableExcel(excelFilePath).setStartRow(2);
     }
 
     /**
@@ -122,16 +105,6 @@ public final class ExcelExecutor {
         mapping.put(true, "Y");
         mapping.put(false, "N");
         return mapping;
-    }
-
-    /**
-     * 构建只读的工作表
-     */
-    private static ReadableSheet buildDefaultReadOnlySheet() {
-        ReadableSheet readableSheet = new ReadableSheet();
-        readableSheet.setIndex(0);
-        readableSheet.setFirstRowNum(2);
-        return readableSheet;
     }
 
     /**
