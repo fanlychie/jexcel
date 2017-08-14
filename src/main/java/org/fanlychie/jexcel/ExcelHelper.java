@@ -16,7 +16,7 @@ import java.util.Map;
  * Excel 执行器
  * Created by fanlychie on 2017/3/5.
  */
-public final class ExcelExecutor {
+public final class ExcelHelper {
 
     /**
      * 默认的布尔值字符串映射表
@@ -110,7 +110,7 @@ public final class ExcelExecutor {
     /**
      * 私有化构造
      */
-    private ExcelExecutor() {
+    private ExcelHelper() {
 
     }
 
