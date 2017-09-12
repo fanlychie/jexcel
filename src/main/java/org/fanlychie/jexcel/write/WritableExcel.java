@@ -9,7 +9,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.jexcel.exception.ExcelCastException;
-import org.fanlychie.jexcel.spec.Format;
 import org.fanlychie.jexcel.spec.Sheet;
 import org.fanlychie.jreflect.BeanDescriptor;
 
@@ -84,6 +83,7 @@ public class WritableExcel {
             buildExcelTitleRow();
             if (data != null && !data.isEmpty()) {
                 RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
+                buildExcelBodyColumnStyle(bodyRowStyle);
                 int bodyIndex = bodyRowStyle.getIndex();
                 for (Object item : data) {
                     buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
@@ -174,8 +174,27 @@ public class WritableExcel {
             int index = cellField.getIndex();
             sxssfSheet.setColumnWidth(index, writableSheet.getCellWidth());
             SXSSFCell cell = row.createCell(index);
-            cell.setCellStyle(rowStyle.getCellStyle(sxssfWorkbook, null));
+            cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
             cell.setCellValue(cellField.getName());
+        }
+    }
+
+    /**
+     * 构建 Excel 主体的列的单元格统一样式
+     *
+     * @param rowStyle 行样式
+     */
+    private void buildExcelBodyColumnStyle(RowStyle rowStyle) {
+        for (int i = 0; i < cellFields.size(); i++) {
+            CellField cellField = cellFields.get(i);
+            CellStyle cellStyle = rowStyle.buildCellStyle(sxssfWorkbook);
+            cellStyle.setAlignment(cellField.getAlign().getValue());
+            String format = cellField.getFormat();
+            DataFormat formatter = sxssfWorkbook.createDataFormat();
+            short dataFormat = formatter.getFormat(format);
+            cellStyle.setDataFormat(dataFormat);
+            sxssfSheet.setDefaultColumnStyle(i, cellStyle);
+            sxssfSheet.setDefaultRowHeightInPoints(rowStyle.getHeight());
         }
     }
 
@@ -193,13 +212,9 @@ public class WritableExcel {
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         for (CellField cellField : cellFields) {
             SXSSFCell cell = row.createCell(cellField.getIndex());
-            CellStyle cellStyle = rowStyle.getCellStyle(sxssfWorkbook, cellField);
-            cellStyle.setAlignment(cellField.getAlign().getValue());
             Object value = beanDescriptor.getValueByName(cellField.getField());
-            Class<?> type = cellField.getType();
-            String format = cellField.getFormat();
-            setCellValue(cell, cellStyle, value, type, format);
-            cell.setCellStyle(cellStyle);
+            setCellValue(cell, value, cellField.getType());
+            cell.setCellStyle(sxssfSheet.getColumnStyle(cellField.getIndex()));
         }
     }
 
@@ -207,73 +222,31 @@ public class WritableExcel {
      * 设置单元格的值
      *
      * @param cell      单元格对象
-     * @param cellStyle 单元格样式
      * @param value     值
      * @param type      值的类型
-     * @param format    数据格式
      */
-    private void setCellValue(SXSSFCell cell, CellStyle cellStyle, Object value, Class<?> type, String format) {
+    private void setCellValue(SXSSFCell cell, Object value, Class<?> type) {
         if (value == null) {
-            setCellStringValue(cell, cellStyle, "");
+            cell.setCellValue("");
         } else if (type == Boolean.TYPE || type == Boolean.class) {
-            setCellBooleanValue(cell, cellStyle, value, format);
+            boolean boolValue = (boolean) value;
+            if (booleanStringMapping != null) {
+                String booleanStr = booleanStringMapping.get(boolValue);
+                if (booleanStr != null) {
+                    cell.setCellValue(booleanStr);
+                } else {
+                    cell.setCellValue(boolValue);
+                }
+            } else {
+                cell.setCellValue(boolValue);
+            }
         } else if ((Number.class.isAssignableFrom(type) || type.isPrimitive()) && type != Byte.TYPE && type != Character.TYPE) {
-            setCellDataFormat(cellStyle, format);
             cell.setCellValue(Double.parseDouble(value.toString()));
         } else if (type == Date.class) {
             cell.setCellValue((Date) value);
-            setCellDataFormat(cellStyle, format);
         } else {
-            setCellStringValue(cell, cellStyle, value.toString());
+            cell.setCellValue(value.toString());
         }
-    }
-
-    /**
-     * 设置单元格字符串值
-     *
-     * @param cell      单元格对象
-     * @param cellStyle 单元格样式
-     * @param value     值
-     */
-    private void setCellStringValue(SXSSFCell cell, CellStyle cellStyle, String value) {
-        cell.setCellValue(value);
-        setCellDataFormat(cellStyle, Format.STRING);
-    }
-
-    /**
-     * 设置单元格布尔类型的值
-     *
-     * @param cell      单元格对象
-     * @param cellStyle 单元格样式
-     * @param value     值
-     * @param format    数据格式
-     */
-    private void setCellBooleanValue(SXSSFCell cell, CellStyle cellStyle, Object value, String format) {
-        boolean boolValue = (boolean) value;
-        if (booleanStringMapping != null) {
-            String booleanStr = booleanStringMapping.get(boolValue);
-            if (booleanStr != null) {
-                setCellStringValue(cell, cellStyle, booleanStr);
-            } else {
-                cell.setCellValue(boolValue);
-                setCellDataFormat(cellStyle, format);
-            }
-        } else {
-            cell.setCellValue(boolValue);
-            setCellDataFormat(cellStyle, format);
-        }
-    }
-
-    /**
-     * 设置单元格数据格式
-     *
-     * @param cellStyle 单元格样式
-     * @param format    数据格式
-     */
-    private void setCellDataFormat(CellStyle cellStyle, String format) {
-        DataFormat formatter = sxssfWorkbook.createDataFormat();
-        short dataFormat = formatter.getFormat(format);
-        cellStyle.setDataFormat(dataFormat);
     }
 
 }

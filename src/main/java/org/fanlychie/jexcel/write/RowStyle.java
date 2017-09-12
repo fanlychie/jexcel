@@ -3,10 +3,6 @@ package org.fanlychie.jexcel.write;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
-import org.fanlychie.jexcel.annotation.CellField;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 行样式
@@ -68,11 +64,6 @@ public class RowStyle {
      * 行数据格式
      */
     private String format;
-
-    /**
-     * 单元格样式缓存
-     */
-    private static final Map<CellField, CellStyle> CELL_STYLE_CACHE_MAP = new HashMap<>();
 
     /**
      * 设置行的起始索引
@@ -178,24 +169,12 @@ public class RowStyle {
     }
 
     /**
-     * 初始化单元格样式
-     */
-    CellStyle getCellStyle(SXSSFWorkbook workbook, CellField cellField) {
-        if (!CELL_STYLE_CACHE_MAP.containsKey(cellField)) {
-            CellStyle cellStyle = buildCellStyle(workbook);
-            CELL_STYLE_CACHE_MAP.put(cellField, cellStyle);
-            return cellStyle;
-        }
-        return CELL_STYLE_CACHE_MAP.get(cellField);
-    }
-
-    /**
      * 构建行的单元格样式
      *
      * @param workbook 工作薄
      * @return 返回单元格样式
      */
-    private CellStyle buildCellStyle(SXSSFWorkbook workbook) {
+    CellStyle buildCellStyle(SXSSFWorkbook workbook) {
         CellStyle cellStyle = workbook.createCellStyle();
         if (alignment != null) {
             cellStyle.setAlignment(alignment);
