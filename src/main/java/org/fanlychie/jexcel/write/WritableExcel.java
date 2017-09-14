@@ -77,8 +77,18 @@ public class WritableExcel {
      * @return 返回当前对象
      */
     public WritableExcel addSheet(List<?> data) {
+        return addSheet(Sheet.getName(sheetCount++, writableSheet.getName()), data);
+    }
+
+    /**
+     * 填充数据, 当数据列表为空时, 输出一个除了标题无实体内容的文件
+     *
+     * @param sheetName 工作表名称
+     * @param data      数据列表
+     * @return 返回当前对象
+     */
+    public WritableExcel addSheet(String sheetName, List<?> data) {
         try {
-            String sheetName = Sheet.getName(sheetCount++, writableSheet.getName());
             sxssfSheet = sxssfWorkbook.createSheet(sheetName);
             buildExcelTitleRow();
             if (data != null && !data.isEmpty()) {
@@ -201,9 +211,9 @@ public class WritableExcel {
     /**
      * 构建 Excel 主体行内容
      *
-     * @param rowStyle  行样式
-     * @param index     行索引
-     * @param obj       填充单元格的对象数据
+     * @param rowStyle 行样式
+     * @param index    行索引
+     * @param obj      填充单元格的对象数据
      * @throws Throwable
      */
     private void buildExcelBodyRow(RowStyle rowStyle, int index, Object obj) throws Throwable {
@@ -221,9 +231,9 @@ public class WritableExcel {
     /**
      * 设置单元格的值
      *
-     * @param cell      单元格对象
-     * @param value     值
-     * @param type      值的类型
+     * @param cell  单元格对象
+     * @param value 值
+     * @param type  值的类型
      */
     private void setCellValue(SXSSFCell cell, Object value, Class<?> type) {
         if (value == null) {

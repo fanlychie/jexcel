@@ -72,9 +72,9 @@ public final class ExcelHelper {
         RowStyle titleRowStyle = new RowStyle();
         titleRowStyle.setIndex(0);
         titleRowStyle.setAlignment(CellStyle.ALIGN_CENTER);
-        titleRowStyle.setBackgroundColor(IndexedColors.YELLOW.index);
+        titleRowStyle.setBackgroundColor(IndexedColors.WHITE.index);
         titleRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
-        titleRowStyle.setFont(12, IndexedColors.BLUE_GREY.index);
+        titleRowStyle.setFont(12, IndexedColors.BLACK.index);
         titleRowStyle.setHeight(28);
         titleRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         titleRowStyle.setWrapText(false);
@@ -88,9 +88,9 @@ public final class ExcelHelper {
     private static RowStyle buildDefaultBodyRowStyle() {
         RowStyle bodyRowStyle = new RowStyle();
         bodyRowStyle.setIndex(1);
-        bodyRowStyle.setBackgroundColor(IndexedColors.LIGHT_TURQUOISE.index);
+        bodyRowStyle.setBackgroundColor(IndexedColors.WHITE.index);
         bodyRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
-        bodyRowStyle.setFont(11, IndexedColors.GREY_50_PERCENT.index);
+        bodyRowStyle.setFont(12, IndexedColors.GREY_80_PERCENT.index);
         bodyRowStyle.setHeight(24);
         bodyRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         bodyRowStyle.setWrapText(true);
