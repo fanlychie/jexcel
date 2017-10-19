@@ -9,6 +9,8 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.jexcel.exception.ExcelCastException;
+import org.fanlychie.jexcel.spec.Align;
+import org.fanlychie.jexcel.spec.Format;
 import org.fanlychie.jexcel.spec.Sheet;
 import org.fanlychie.jreflect.BeanDescriptor;
 
@@ -17,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +60,16 @@ public class WritableExcel {
     private int sheetCount = 1;
 
     /**
+     * 下一行索引值
+     */
+    private int nextRowIndex;
+
+    /**
+     * 默认的单元格样式
+     */
+    private CellStyle defaultCellStyle;
+
+    /**
      * 构建实例
      *
      * @param writableSheet 工作表
@@ -89,6 +102,7 @@ public class WritableExcel {
      */
     public WritableExcel addSheet(String sheetName, List<?> data) {
         try {
+            nextRowIndex = data.size() + 1;
             sxssfSheet = sxssfWorkbook.createSheet(sheetName);
             buildExcelTitleRow();
             if (data != null && !data.isEmpty()) {
@@ -103,6 +117,48 @@ public class WritableExcel {
         } catch (Throwable e) {
             throw new ExcelCastException(e);
         }
+    }
+
+    /**
+     * 添加一行
+     *
+     * @param startIndex 起始索引值, 从0开始, 表示第一列
+     * @param textValues 文本值
+     * @return 返回当前对象
+     */
+    public WritableExcel addRow(int startIndex, Object... textValues) {
+        int length = textValues.length;
+        Map<String, Object> textValueMap = new LinkedHashMap<>();
+        for (int i = 0; i < length; i += 2) {
+            textValueMap.put(textValues[i].toString(), textValues[i + 1]);
+        }
+        return addRow(startIndex, textValueMap);
+    }
+
+    /**
+     * 添加一行
+     *
+     * @param startIndex 起始索引值, 从0开始, 表示第一列
+     * @param textValues 文本值
+     * @return 返回当前对象
+     */
+    public WritableExcel addRow(int startIndex, Map<String, Object> textValues) {
+        if (nextRowIndex == 0) {
+            throw new IllegalStateException();
+        }
+        SXSSFRow row = sxssfSheet.createRow(nextRowIndex++);
+        RowStyle rowStyle = writableSheet.getBodyRowStyle();
+        row.setHeightInPoints(rowStyle.getHeight());
+        SXSSFCell cell;
+        for (String text : textValues.keySet()) {
+            cell = row.createCell(startIndex++);
+            cell.setCellStyle(defaultCellStyle);
+            setCellValue(cell, text, String.class);
+            cell = row.createCell(startIndex++);
+            cell.setCellStyle(defaultCellStyle);
+            setCellValue(cell, textValues.get(text), String.class);
+        }
+        return this;
     }
 
     /**
@@ -187,6 +243,11 @@ public class WritableExcel {
             cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
             cell.setCellValue(cellField.getName());
         }
+        defaultCellStyle = rowStyle.buildCellStyle(sxssfWorkbook);
+        defaultCellStyle.setAlignment(Align.CENTER.getValue());
+        DataFormat formatter = sxssfWorkbook.createDataFormat();
+        short dataFormat = formatter.getFormat(Format.STRING);
+        defaultCellStyle.setDataFormat(dataFormat);
     }
 
     /**
