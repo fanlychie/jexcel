@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,26 +122,10 @@ public class WritableExcel {
      * 添加一行
      *
      * @param startIndex 起始索引值, 从0开始, 表示第一列
-     * @param textValues 文本值
+     * @param values     文本值
      * @return 返回当前对象
      */
-    public WritableExcel addRow(int startIndex, Object... textValues) {
-        int length = textValues.length;
-        Map<String, Object> textValueMap = new LinkedHashMap<>();
-        for (int i = 0; i < length; i += 2) {
-            textValueMap.put(textValues[i].toString(), textValues[i + 1]);
-        }
-        return addRow(startIndex, textValueMap);
-    }
-
-    /**
-     * 添加一行
-     *
-     * @param startIndex 起始索引值, 从0开始, 表示第一列
-     * @param textValues 文本值
-     * @return 返回当前对象
-     */
-    public WritableExcel addRow(int startIndex, Map<String, Object> textValues) {
+    public WritableExcel addRow(int startIndex, Object... values) {
         if (nextRowIndex == 0) {
             throw new IllegalStateException();
         }
@@ -150,13 +133,10 @@ public class WritableExcel {
         RowStyle rowStyle = writableSheet.getBodyRowStyle();
         row.setHeightInPoints(rowStyle.getHeight());
         SXSSFCell cell;
-        for (String text : textValues.keySet()) {
+        for (int i = 0; i < values.length; i++) {
             cell = row.createCell(startIndex++);
             cell.setCellStyle(defaultCellStyle);
-            setCellValue(cell, text, String.class);
-            cell = row.createCell(startIndex++);
-            cell.setCellStyle(defaultCellStyle);
-            setCellValue(cell, textValues.get(text), String.class);
+            setCellValue(cell, values[i], String.class);
         }
         return this;
     }
