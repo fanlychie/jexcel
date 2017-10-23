@@ -32,6 +32,11 @@ public class WritableSheet {
     private RowStyle bodyRowStyle;
 
     /**
+     * 脚部行样式
+     */
+    private RowStyle footerRowStyle;
+
+    /**
      * 构建实例
      *
      * @param dataType 填充工作表的数据类型
@@ -119,6 +124,24 @@ public class WritableSheet {
      */
     public RowStyle getBodyRowStyle() {
         return bodyRowStyle;
+    }
+
+    /**
+     * 获取脚部行样式
+     *
+     * @return 返回脚部行样式
+     */
+    public RowStyle getFooterRowStyle() {
+        return footerRowStyle;
+    }
+
+    /**
+     * 设置脚部行样式
+     *
+     * @param footerRowStyle 脚部行样式
+     */
+    public void setFooterRowStyle(RowStyle footerRowStyle) {
+        this.footerRowStyle = footerRowStyle;
     }
 
 }

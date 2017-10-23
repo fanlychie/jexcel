@@ -62,6 +62,7 @@ public final class ExcelHelper {
         writableSheet.setCellWidth(20);
         writableSheet.setBodyRowStyle(buildDefaultBodyRowStyle());
         writableSheet.setTitleRowStyle(buildDefaultTitleRowStyle());
+        writableSheet.setFooterRowStyle(buildDefaultFooterRowStyle());
         return writableSheet;
     }
 
@@ -95,6 +96,22 @@ public final class ExcelHelper {
         bodyRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
         bodyRowStyle.setWrapText(true);
         return bodyRowStyle;
+    }
+
+    /**
+     * 构建默认的脚部行样式
+     */
+    private static RowStyle buildDefaultFooterRowStyle() {
+        RowStyle footerRowStyle = new RowStyle();
+        footerRowStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        footerRowStyle.setBackgroundColor(IndexedColors.WHITE.index);
+        footerRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
+        footerRowStyle.setFont(12, IndexedColors.GREY_80_PERCENT.index);
+        footerRowStyle.setHeight(24);
+        footerRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
+        footerRowStyle.setWrapText(true);
+        footerRowStyle.setFormat(Format.getDefault(String.class));
+        return footerRowStyle;
     }
 
     /**

@@ -9,8 +9,6 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.jexcel.exception.ExcelCastException;
-import org.fanlychie.jexcel.spec.Align;
-import org.fanlychie.jexcel.spec.Format;
 import org.fanlychie.jexcel.spec.Sheet;
 import org.fanlychie.jreflect.BeanDescriptor;
 
@@ -64,9 +62,9 @@ public class WritableExcel {
     private int nextRowIndex;
 
     /**
-     * 默认的单元格样式
+     * 脚部的单元格样式
      */
-    private CellStyle defaultCellStyle;
+    private CellStyle footerCellStyle;
 
     /**
      * 构建实例
@@ -129,14 +127,34 @@ public class WritableExcel {
         if (nextRowIndex == 0) {
             throw new IllegalStateException();
         }
+        if (footerCellStyle == null) {
+            RowStyle rowStyle = writableSheet.getFooterRowStyle();
+            footerCellStyle = rowStyle.buildCellStyle(sxssfWorkbook);
+        }
+        int startColumnIndex = startIndex;
         SXSSFRow row = sxssfSheet.createRow(nextRowIndex++);
-        RowStyle rowStyle = writableSheet.getBodyRowStyle();
+        RowStyle rowStyle = writableSheet.getFooterRowStyle();
         row.setHeightInPoints(rowStyle.getHeight());
         SXSSFCell cell;
         for (int i = 0; i < values.length; i++) {
             cell = row.createCell(startIndex++);
-            cell.setCellStyle(defaultCellStyle);
+            cell.setCellStyle(footerCellStyle);
             setCellValue(cell, values[i], String.class);
+        }
+        // 参数startIndex前面的单元格样式补全
+        if (startColumnIndex > 0) {
+            for (int i = 0; i < startColumnIndex; i++) {
+                cell = row.createCell(i++);
+                cell.setCellStyle(footerCellStyle);
+            }
+        }
+        // 参数startIndex后面的单元格样式补全
+        int interval = cellFields.size() - (startColumnIndex + values.length);
+        if (interval > 0) {
+            for (int i = 0; i < interval; i++) {
+                cell = row.createCell(startIndex++);
+                cell.setCellStyle(footerCellStyle);
+            }
         }
         return this;
     }
@@ -223,11 +241,6 @@ public class WritableExcel {
             cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
             cell.setCellValue(cellField.getName());
         }
-        defaultCellStyle = rowStyle.buildCellStyle(sxssfWorkbook);
-        defaultCellStyle.setAlignment(Align.CENTER.getValue());
-        DataFormat formatter = sxssfWorkbook.createDataFormat();
-        short dataFormat = formatter.getFormat(Format.STRING);
-        defaultCellStyle.setDataFormat(dataFormat);
     }
 
     /**
