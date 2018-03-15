@@ -9,12 +9,12 @@ public class WritableSheet {
     /**
      * 工作表名称
      */
-    private String name;
+    private String name = "Sheet";
 
     /**
      * 单元格宽度
      */
-    private int cellWidth;
+    private Integer cellWidth;
 
     /**
      * 填充工作表的数据类型
@@ -59,7 +59,7 @@ public class WritableSheet {
      *
      * @param cellWidth 单元格宽度
      */
-    public void setCellWidth(int cellWidth) {
+    public void setCellWidth(Integer cellWidth) {
         this.cellWidth = cellWidth;
     }
 
@@ -95,8 +95,8 @@ public class WritableSheet {
      *
      * @return 返回单元格宽度
      */
-    public int getCellWidth() {
-        return cellWidth * 256 + 184;
+    public Integer getCellWidth() {
+        return cellWidth == null ? null : cellWidth * 256 + 184;
     }
 
     /**

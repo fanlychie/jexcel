@@ -1,12 +1,9 @@
 package org.fanlychie.jexcel;
 
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.fanlychie.jexcel.read.ReadableExcel;
-import org.fanlychie.jexcel.spec.Format;
-import org.fanlychie.jexcel.write.RowStyle;
 import org.fanlychie.jexcel.write.WritableExcel;
-import org.fanlychie.jexcel.write.WritableSheet;
+import org.fanlychie.jexcel.write.model.CustomExcelSheet;
+import org.fanlychie.jexcel.write.model.DefaultExcelSheet;
 
 import java.io.File;
 import java.util.HashMap;
@@ -24,18 +21,29 @@ public final class ExcelHelper {
     private static final Map<Boolean, String> DEFAULT_BOOLEAN_STRING_MAPPING = buildDefaultBooleanStringMapping();
 
     /**
-     * 获取一个可写的 Excel 对象
+     * 获取一个可写的默认的EXCEL对象
      *
-     * @param dataType 填充工作表的数据类型
-     * @return 返回可写的 Excel 对象
+     * @param dataClassType 填充工作表的数据类型
+     * @return 返回可写的 EXCEL对象
      */
-    public static WritableExcel getWritableExcel(Class<?> dataType) {
-        return new WritableExcel(buildDefaultWritableSheet(dataType))
+    public static WritableExcel getDefaultWritableExcel(Class<?> dataClassType) {
+        return new WritableExcel(new DefaultExcelSheet(dataClassType))
                 .booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING);
     }
 
     /**
-     * 获取一个可读的 Excel 对象
+     * 获取一个可写的默认的EXCEL对象
+     *
+     * @param dataClassType 填充工作表的数据类型
+     * @return 返回可写的 EXCEL对象
+     */
+    public static WritableExcel getCustomWritableExcel(Class<?> dataClassType) {
+        return new WritableExcel(new CustomExcelSheet(dataClassType))
+                .booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING);
+    }
+
+    /**
+     * 获取一个可读的EXCEL对象
      *
      * @param excelFile Excel 文件
      * @return 返回可读的 Excel 对象
@@ -55,72 +63,12 @@ public final class ExcelHelper {
     }
 
     /**
-     * 构建默认的工作表对象
-     */
-    private static WritableSheet buildDefaultWritableSheet(Class<?> dataType) {
-        WritableSheet writableSheet = new WritableSheet(dataType);
-        writableSheet.setCellWidth(20);
-        writableSheet.setBodyRowStyle(buildDefaultBodyRowStyle());
-        writableSheet.setTitleRowStyle(buildDefaultTitleRowStyle());
-        writableSheet.setFooterRowStyle(buildDefaultFooterRowStyle());
-        return writableSheet;
-    }
-
-    /**
-     * 构建默认的标题行样式
-     */
-    private static RowStyle buildDefaultTitleRowStyle() {
-        RowStyle titleRowStyle = new RowStyle();
-        titleRowStyle.setIndex(0);
-        titleRowStyle.setAlignment(CellStyle.ALIGN_CENTER);
-        titleRowStyle.setBackgroundColor(IndexedColors.WHITE.index);
-        titleRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
-        titleRowStyle.setFont(12, IndexedColors.BLACK.index);
-        titleRowStyle.setHeight(28);
-        titleRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        titleRowStyle.setWrapText(false);
-        titleRowStyle.setFormat(Format.getDefault(String.class));
-        return titleRowStyle;
-    }
-
-    /**
-     * 构建默认的主体行样式
-     */
-    private static RowStyle buildDefaultBodyRowStyle() {
-        RowStyle bodyRowStyle = new RowStyle();
-        bodyRowStyle.setIndex(1);
-        bodyRowStyle.setBackgroundColor(IndexedColors.WHITE.index);
-        bodyRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
-        bodyRowStyle.setFont(12, IndexedColors.GREY_80_PERCENT.index);
-        bodyRowStyle.setHeight(24);
-        bodyRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        bodyRowStyle.setWrapText(true);
-        return bodyRowStyle;
-    }
-
-    /**
-     * 构建默认的脚部行样式
-     */
-    private static RowStyle buildDefaultFooterRowStyle() {
-        RowStyle footerRowStyle = new RowStyle();
-        footerRowStyle.setAlignment(CellStyle.ALIGN_CENTER);
-        footerRowStyle.setBackgroundColor(IndexedColors.WHITE.index);
-        footerRowStyle.setBorder(CellStyle.BORDER_THIN, IndexedColors.GREY_25_PERCENT.index);
-        footerRowStyle.setFont(12, IndexedColors.GREY_80_PERCENT.index);
-        footerRowStyle.setHeight(24);
-        footerRowStyle.setVerticalAlignment(CellStyle.VERTICAL_CENTER);
-        footerRowStyle.setWrapText(true);
-        footerRowStyle.setFormat(Format.getDefault(String.class));
-        return footerRowStyle;
-    }
-
-    /**
      * 构建默认的布尔值字符串映射表
      */
     private static Map<Boolean, String> buildDefaultBooleanStringMapping() {
         Map<Boolean, String> mapping = new HashMap<>();
-        mapping.put(true, "Y");
-        mapping.put(false, "N");
+        mapping.put(true, "是");
+        mapping.put(false, "否");
         return mapping;
     }
 

@@ -1,0 +1,37 @@
+# 全局配置
+global:
+    cellWidth: 19
+# 标题行配置
+titleRow:
+    startIndex: 0
+    height: 22
+    fontName: 宋体
+    fontSize: 12
+    fontColor: BLACK
+    wrapText: false
+    format: STRING
+    backgroundColor: WHITE
+    align: CENTER
+    verticalAlign: CENTER
+# 主体行配置
+bodyRow:
+    startIndex: 1
+    height: 20
+    fontName: 宋体
+    fontSize: 12
+    fontColor: BLACK
+    wrapText: true
+    backgroundColor: WHITE
+    align: LEFT
+    verticalAlign: CENTER
+# 底部行配置
+footRow:
+    height: 22
+    fontName: 宋体
+    fontSize: 12
+    fontColor: BLACK
+    wrapText: true
+    format: STRING
+    backgroundColor: WHITE
+    align: CENTER
+    verticalAlign: CENTER

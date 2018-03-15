@@ -9,7 +9,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.jexcel.exception.ExcelCastException;
-import org.fanlychie.jexcel.spec.Sheet;
+import org.fanlychie.jexcel.write.model.ExcelSheet;
 import org.fanlychie.jreflect.BeanDescriptor;
 
 import java.io.File;
@@ -69,10 +69,10 @@ public class WritableExcel {
     /**
      * 构建实例
      *
-     * @param writableSheet 工作表
+     * @param excelSheet    工作表
      */
-    public WritableExcel(WritableSheet writableSheet) {
-        this.writableSheet = writableSheet;
+    public WritableExcel(ExcelSheet excelSheet) {
+        this.writableSheet = excelSheet.getWritableSheet();
         this.sxssfWorkbook = new SXSSFWorkbook();
         if (writableSheet.getDataType() == null) {
             throw new IllegalArgumentException("dataType can not be null");
@@ -87,7 +87,7 @@ public class WritableExcel {
      * @return 返回当前对象
      */
     public WritableExcel addSheet(List<?> data) {
-        return addSheet(Sheet.getName(sheetCount++, writableSheet.getName()), data);
+        return addSheet(writableSheet.getName() + (sheetCount++), data);
     }
 
     /**
@@ -134,7 +134,9 @@ public class WritableExcel {
         int startColumnIndex = startIndex;
         SXSSFRow row = sxssfSheet.createRow(nextRowIndex++);
         RowStyle rowStyle = writableSheet.getFooterRowStyle();
-        row.setHeightInPoints(rowStyle.getHeight());
+        if (rowStyle.getHeight() != null) {
+            row.setHeightInPoints(rowStyle.getHeight());
+        }
         SXSSFCell cell;
         for (int i = 0; i < values.length; i++) {
             cell = row.createCell(startIndex++);
@@ -233,10 +235,14 @@ public class WritableExcel {
     private void buildExcelTitleRow() throws Throwable {
         RowStyle rowStyle = writableSheet.getTitleRowStyle();
         SXSSFRow row = sxssfSheet.createRow(rowStyle.getIndex());
-        row.setHeightInPoints(rowStyle.getHeight());
+        if (rowStyle.getHeight() != null) {
+            row.setHeightInPoints(rowStyle.getHeight());
+        }
         for (CellField cellField : cellFields) {
             int index = cellField.getIndex();
-            sxssfSheet.setColumnWidth(index, writableSheet.getCellWidth());
+            if (writableSheet.getCellWidth() != null) {
+                sxssfSheet.setColumnWidth(index, writableSheet.getCellWidth());
+            }
             SXSSFCell cell = row.createCell(index);
             cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
             cell.setCellValue(cellField.getName());
@@ -258,7 +264,9 @@ public class WritableExcel {
             short dataFormat = formatter.getFormat(format);
             cellStyle.setDataFormat(dataFormat);
             sxssfSheet.setDefaultColumnStyle(i, cellStyle);
-            sxssfSheet.setDefaultRowHeightInPoints(rowStyle.getHeight());
+            if (rowStyle.getHeight() != null) {
+                sxssfSheet.setDefaultRowHeightInPoints(rowStyle.getHeight());
+            }
         }
     }
 
@@ -272,7 +280,9 @@ public class WritableExcel {
      */
     private void buildExcelBodyRow(RowStyle rowStyle, int index, Object obj) throws Throwable {
         SXSSFRow row = sxssfSheet.createRow(index);
-        row.setHeightInPoints(rowStyle.getHeight());
+        if (rowStyle.getHeight() != null) {
+            row.setHeightInPoints(rowStyle.getHeight());
+        }
         BeanDescriptor beanDescriptor = new BeanDescriptor(obj);
         for (CellField cellField : cellFields) {
             SXSSFCell cell = row.createCell(cellField.getIndex());

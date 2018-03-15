@@ -9,19 +9,34 @@ import org.apache.poi.ss.usermodel.CellStyle;
 public enum Align {
 
     /**
-     * 左对齐
+     * 水平方向 - 左对齐
      */
     LEFT(CellStyle.ALIGN_LEFT),
 
     /**
-     * 右对齐
+     * 水平方向 - 右对齐
      */
     RIGHT(CellStyle.ALIGN_RIGHT),
 
     /**
-     * 居中对齐
+     * 水平方向 - 居中对齐
      */
     CENTER(CellStyle.ALIGN_CENTER),
+
+    /**
+     * 垂直方向 - 居中对齐
+     */
+    VERTICAL_TOP(CellStyle.VERTICAL_TOP),
+
+    /**
+     * 垂直方向 - 居中对齐
+     */
+    VERTICAL_CENTER(CellStyle.VERTICAL_CENTER),
+
+    /**
+     * 垂直方向 - 居中对齐
+     */
+    VERTICAL_BOTTOM(CellStyle.VERTICAL_BOTTOM),
 
     ;
 

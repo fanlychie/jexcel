@@ -36,6 +36,11 @@ public class RowStyle {
     private Boolean wrapText;
 
     /**
+     * 字体名称
+     */
+    private String fontName;
+
+    /**
      * 字体大小
      */
     private Integer fontSize;
@@ -70,7 +75,7 @@ public class RowStyle {
      *
      * @param index 起始索引, 索引值从0开始
      */
-    public void setIndex(int index) {
+    public void setIndex(Integer index) {
         this.index = index;
     }
 
@@ -79,7 +84,7 @@ public class RowStyle {
      *
      * @param height 行高
      */
-    public void setHeight(int height) {
+    public void setHeight(Integer height) {
         this.height = height;
     }
 
@@ -88,7 +93,7 @@ public class RowStyle {
      *
      * @param alignment 水平方向对齐方式 {@link org.apache.poi.ss.usermodel.CellStyle}
      */
-    public void setAlignment(short alignment) {
+    public void setAlignment(Short alignment) {
         this.alignment = alignment;
     }
 
@@ -97,7 +102,7 @@ public class RowStyle {
      *
      * @param verticalAlignment 垂直方向对齐方式 {@link org.apache.poi.ss.usermodel.CellStyle}
      */
-    public void setVerticalAlignment(short verticalAlignment) {
+    public void setVerticalAlignment(Short verticalAlignment) {
         this.verticalAlignment = verticalAlignment;
     }
 
@@ -106,7 +111,7 @@ public class RowStyle {
      *
      * @param wrapText 是否自动换行
      */
-    public void setWrapText(boolean wrapText) {
+    public void setWrapText(Boolean wrapText) {
         this.wrapText = wrapText;
     }
 
@@ -116,7 +121,8 @@ public class RowStyle {
      * @param fontSize  字体大小
      * @param fontColor 字体颜色 {@link org.apache.poi.ss.usermodel.IndexedColors}
      */
-    public void setFont(int fontSize, short fontColor) {
+    public void setFont(String fontName, Integer fontSize, Short fontColor) {
+        this.fontName = fontName;
         this.fontSize = fontSize;
         this.fontColor = fontColor;
     }
@@ -127,7 +133,7 @@ public class RowStyle {
      * @param border      边框 {@link org.apache.poi.ss.usermodel.CellStyle}
      * @param borderColor 边框样式 {@link org.apache.poi.ss.usermodel.IndexedColors}
      */
-    public void setBorder(short border, short borderColor) {
+    public void setBorder(Short border, Short borderColor) {
         this.border = border;
         this.borderColor = borderColor;
     }
@@ -137,7 +143,7 @@ public class RowStyle {
      *
      * @param backgroundColor 背景颜色 {@link org.apache.poi.ss.usermodel.IndexedColors}
      */
-    public void setBackgroundColor(short backgroundColor) {
+    public void setBackgroundColor(Short backgroundColor) {
         this.backgroundColor = backgroundColor;
     }
 
@@ -155,7 +161,7 @@ public class RowStyle {
      *
      * @return 返回行的索引值
      */
-    int getIndex() {
+    Integer getIndex() {
         return index;
     }
 
@@ -164,7 +170,7 @@ public class RowStyle {
      *
      * @return 返回行的高度
      */
-    int getHeight() {
+    Integer getHeight() {
         return height;
     }
 
@@ -182,7 +188,7 @@ public class RowStyle {
         if (verticalAlignment != null) {
             cellStyle.setVerticalAlignment(verticalAlignment);
         }
-        if (fontSize != null && fontColor != null) {
+        if (fontSize != null || fontColor != null || fontName != null) {
             cellStyle.setFont(createFont(workbook));
         }
         if (wrapText != null) {
@@ -215,8 +221,15 @@ public class RowStyle {
      */
     private Font createFont(SXSSFWorkbook workbook) {
         Font font = workbook.createFont();
-        font.setColor(fontColor);
-        font.setFontHeightInPoints(fontSize.shortValue());
+        if (fontColor != null) {
+            font.setColor(fontColor);
+        }
+        if (fontSize != null) {
+            font.setFontHeightInPoints(fontSize.shortValue());
+        }
+        if (fontName != null) {
+            font.setFontName(fontName);
+        }
         return font;
     }
 

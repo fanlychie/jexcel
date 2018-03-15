@@ -3,39 +3,43 @@ package org.fanlychie.jexcel.spec;
 import java.util.Date;
 
 /**
- * 数据格式
+ * 数据格式枚举
  * Created by fanlychie on 2017/3/4.
  */
-public final class Format {
+public enum Format {
 
     /**
      * 缺省的文本格式
      */
-    public static final String STRING = "@";
+    STRING("@"),
 
     /**
      * 缺省的整型格式
      */
-    public static final String INTEGER = "0";
+    INTEGER("0"),
 
     /**
      * 缺省的小数格式
      */
-    public static final String DECIMAL = "0.00";
+    DECIMAL("0.00"),
 
     /**
      * 缺省的日期格式
      */
-    public static final String DATE = "yyyy-MM-dd";
+    DATE("yyyy-MM-dd"),
 
     /**
      * 缺省的日期时间格式
      */
-    public static final String DATETIME = "yyyy-MM-dd HH:mm:ss";
+    DATETIME("yyyy-MM-dd HH:mm:ss")
+
+    ;
+
+    private final String format;
 
     // 私有化构造
-    private Format() {
-
+    private Format(String format) {
+        this.format = format;
     }
 
     /**
@@ -46,21 +50,25 @@ public final class Format {
      */
     public static String getDefault(Class<?> type) {
         if (type == String.class) {
-            return STRING;
+            return STRING.format;
         }
         if (type == Short.TYPE || type == Short.class
                 || type == Integer.TYPE || type == Integer.class
                 || type == Long.TYPE || type == Long.class) {
-            return INTEGER;
+            return INTEGER.format;
         }
         if (type == Float.TYPE || type == Float.class
                 || type == Double.TYPE || type == Double.class) {
-            return DECIMAL;
+            return DECIMAL.format;
         }
         if (type == Date.class) {
-            return DATETIME;
+            return DATETIME.format;
         }
-        return STRING;
+        return STRING.format;
+    }
+
+    public String getFormat() {
+        return format;
     }
 
 }
