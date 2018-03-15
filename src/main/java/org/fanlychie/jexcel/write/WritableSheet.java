@@ -1,5 +1,7 @@
 package org.fanlychie.jexcel.write;
 
+import java.util.Map;
+
 /**
  * 工作表
  * Created by fanlychie on 2017/3/4.
@@ -17,11 +19,6 @@ public class WritableSheet {
     private Integer cellWidth;
 
     /**
-     * 填充工作表的数据类型
-     */
-    private Class<?> dataType;
-
-    /**
      * 标题行样式
      */
     private RowStyle titleRowStyle;
@@ -37,13 +34,9 @@ public class WritableSheet {
     private RowStyle footerRowStyle;
 
     /**
-     * 构建实例
-     *
-     * @param dataType 填充工作表的数据类型
+     * 关键字映射
      */
-    public WritableSheet(Class<?> dataType) {
-        this.dataType = dataType;
-    }
+    private Map<Object, Object> keyMapping;
 
     /**
      * 设置工作表的名称
@@ -100,15 +93,6 @@ public class WritableSheet {
     }
 
     /**
-     * 获取填充工作表的数据类型
-     *
-     * @return 返回填充工作表的数据类型
-     */
-    public Class<?> getDataType() {
-        return dataType;
-    }
-
-    /**
      * 获取标题行样式
      *
      * @return 返回标题行样式
@@ -144,4 +128,20 @@ public class WritableSheet {
         this.footerRowStyle = footerRowStyle;
     }
 
+    /**
+     * 获取关键字映射表
+     *
+     * @return 返回关键字映射表
+     */
+    public Map<Object, Object> getKeyMapping() {
+        return keyMapping;
+    }
+
+    /**
+     * 设置关键字映射表
+     * @param keyMapping 关键字映射表
+     */
+    public void setKeyMapping(Map<Object, Object> keyMapping) {
+        this.keyMapping = keyMapping;
+    }
 }

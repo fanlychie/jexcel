@@ -10,13 +10,17 @@ import org.fanlychie.jexcel.annotation.AnnotationHandler;
 import org.fanlychie.jexcel.annotation.CellField;
 import org.fanlychie.jexcel.exception.ExcelCastException;
 import org.fanlychie.jexcel.write.model.ExcelSheet;
+import org.fanlychie.jexcel.write.model.SimpleCell;
+import org.fanlychie.jexcel.write.model.SimpleRow;
 import org.fanlychie.jreflect.BeanDescriptor;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,24 +51,24 @@ public class WritableExcel {
     private List<CellField> cellFields;
 
     /**
-     * 布尔值字符串映射表
-     */
-    private Map<Boolean, String> booleanStringMapping;
-
-    /**
      * 工作表计数
      */
     private int sheetCount = 1;
 
     /**
-     * 下一行索引值
+     * 边界行索引值
      */
-    private int nextRowIndex;
+    private int boundRowIndex;
 
     /**
      * 脚部的单元格样式
      */
     private CellStyle footerCellStyle;
+
+    /**
+     * 关键字映射
+     */
+    private Map<Object, Object> keyMapping;
 
     /**
      * 构建实例
@@ -74,14 +78,11 @@ public class WritableExcel {
     public WritableExcel(ExcelSheet excelSheet) {
         this.writableSheet = excelSheet.getWritableSheet();
         this.sxssfWorkbook = new SXSSFWorkbook();
-        if (writableSheet.getDataType() == null) {
-            throw new IllegalArgumentException("dataType can not be null");
-        }
-        this.cellFields = AnnotationHandler.parseClass(writableSheet.getDataType());
+        this.keyMapping = writableSheet.getKeyMapping();
     }
 
     /**
-     * 填充数据, 当数据列表为空时, 输出一个除了标题无实体内容的文件
+     * 添加一个工作表
      *
      * @param data 数据列表
      * @return 返回当前对象
@@ -91,23 +92,38 @@ public class WritableExcel {
     }
 
     /**
-     * 填充数据, 当数据列表为空时, 输出一个除了标题无实体内容的文件
+     * 添加一个工作表
      *
      * @param sheetName 工作表名称
      * @param data      数据列表
      * @return 返回当前对象
      */
-    public WritableExcel addSheet(String sheetName, List<?> data) {
+    public WritableExcel addSheet(String sheetName, Collection<?> data) {
         try {
-            nextRowIndex = data.size() + 1;
+            // 创建工作表
             sxssfSheet = sxssfWorkbook.createSheet(sheetName);
-            buildExcelTitleRow();
-            if (data != null && !data.isEmpty()) {
-                RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
-                buildExcelBodyColumnStyle(bodyRowStyle);
-                int bodyIndex = bodyRowStyle.getIndex();
-                for (Object item : data) {
-                    buildExcelBodyRow(bodyRowStyle, bodyIndex++, item);
+            // 处理工作表数据
+            if (data != null) {
+                Iterator<?> iterator = data.iterator();
+                if (iterator.hasNext()) {
+                    // 行数据对象
+                    Object rowObj = iterator.next();
+                    // 边界索引
+                    boundRowIndex += data.size() + 1;
+                    // 单元格字段解析
+                    cellFields = AnnotationHandler.parseClass(rowObj.getClass());
+                    // 行样式
+                    RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
+                    // 构建标题行
+                    buildExcelTitleRow();
+                    // 构建主体行样式
+                    buildExcelBodyColumnStyle(bodyRowStyle);
+                    // 主体索引
+                    int bodyIndex = bodyRowStyle.getIndex();
+                    do {
+                        // 构建行数据
+                        buildExcelBodyRow(bodyRowStyle, bodyIndex++, rowObj);
+                    } while (iterator.hasNext() && (rowObj = iterator.next()) != null);
                 }
             }
             return this;
@@ -119,46 +135,21 @@ public class WritableExcel {
     /**
      * 添加一行
      *
-     * @param startIndex 起始索引值, 从0开始, 表示第一列
-     * @param values     文本值
+     * @param simpleRow 行
      * @return 返回当前对象
      */
-    public WritableExcel addRow(int startIndex, Object... values) {
-        if (nextRowIndex == 0) {
-            throw new IllegalStateException();
-        }
-        if (footerCellStyle == null) {
-            RowStyle rowStyle = writableSheet.getFooterRowStyle();
-            footerCellStyle = rowStyle.buildCellStyle(sxssfWorkbook);
-        }
-        int startColumnIndex = startIndex;
-        SXSSFRow row = sxssfSheet.createRow(nextRowIndex++);
-        RowStyle rowStyle = writableSheet.getFooterRowStyle();
-        if (rowStyle.getHeight() != null) {
-            row.setHeightInPoints(rowStyle.getHeight());
-        }
-        SXSSFCell cell;
-        for (int i = 0; i < values.length; i++) {
-            cell = row.createCell(startIndex++);
-            cell.setCellStyle(footerCellStyle);
-            setCellValue(cell, values[i], String.class);
-        }
-        // 参数startIndex前面的单元格样式补全
-        if (startColumnIndex > 0) {
-            for (int i = 0; i < startColumnIndex; i++) {
-                cell = row.createCell(i++);
-                cell.setCellStyle(footerCellStyle);
-            }
-        }
-        // 参数startIndex后面的单元格样式补全
-        int interval = cellFields.size() - (startColumnIndex + values.length);
-        if (interval > 0) {
-            for (int i = 0; i < interval; i++) {
-                cell = row.createCell(startIndex++);
-                cell.setCellStyle(footerCellStyle);
-            }
-        }
-        return this;
+    public WritableExcel addRow(SimpleRow simpleRow) {
+        return addRow(simpleRow, null);
+    }
+
+    /**
+     * 添加一行
+     *
+     * @param simpleRow 行
+     * @return 返回当前对象
+     */
+    public WritableExcel addFooterRow(SimpleRow simpleRow) {
+        return addRow(simpleRow, writableSheet.getFooterRowStyle());
     }
 
     /**
@@ -216,14 +207,23 @@ public class WritableExcel {
         return writableSheet;
     }
 
-    /**
-     * 设置布尔值字符串映射表
-     *
-     * @param booleanStringMapping 布尔值字符串映射表
-     * @return 返回当前对象
-     */
-    public WritableExcel booleanStringMapping(Map<Boolean, String> booleanStringMapping) {
-        this.booleanStringMapping = booleanStringMapping;
+    private WritableExcel addRow(SimpleRow simpleRow, RowStyle rowStyle) {
+        if (boundRowIndex == 0) {
+            throw new IllegalStateException();
+        }
+        boundRowIndex += simpleRow.getIndex();
+        SXSSFRow row = sxssfSheet.createRow(boundRowIndex++);
+        if (writableSheet.getBodyRowStyle().getHeight() != null) {
+            row.setHeightInPoints(writableSheet.getBodyRowStyle().getHeight());
+        }
+        List<SimpleCell> simpleCells = simpleRow.getSimpleCells();
+        for (SimpleCell simpleCell : simpleCells) {
+            SXSSFCell cell = row.createCell(simpleCell.getIndex());
+            setCellValue(cell, simpleCell.getValue(), simpleCell.getValue().getClass());
+            if (rowStyle != null) {
+                cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
+            }
+        }
         return this;
     }
 
@@ -302,24 +302,22 @@ public class WritableExcel {
     private void setCellValue(SXSSFCell cell, Object value, Class<?> type) {
         if (value == null) {
             cell.setCellValue("");
-        } else if (type == Boolean.TYPE || type == Boolean.class) {
-            boolean boolValue = (boolean) value;
-            if (booleanStringMapping != null) {
-                String booleanStr = booleanStringMapping.get(boolValue);
-                if (booleanStr != null) {
-                    cell.setCellValue(booleanStr);
-                } else {
-                    cell.setCellValue(boolValue);
-                }
-            } else {
-                cell.setCellValue(boolValue);
-            }
-        } else if ((Number.class.isAssignableFrom(type) || type.isPrimitive()) && type != Byte.TYPE && type != Character.TYPE) {
+        }
+        else if ((type == Boolean.TYPE || type == Boolean.class) && (keyMapping == null || !keyMapping.containsKey(value))) {
+            cell.setCellValue((boolean) value);
+        }
+        else if ((Number.class.isAssignableFrom(value.getClass()))) {
             cell.setCellValue(Double.parseDouble(value.toString()));
-        } else if (type == Date.class) {
+        }
+        else if (type == Date.class) {
             cell.setCellValue((Date) value);
-        } else {
-            cell.setCellValue(value.toString());
+        }
+        else {
+            String cellValue = value.toString();
+            if (keyMapping != null && keyMapping.containsKey(value)) {
+                cellValue = keyMapping.get(value).toString();
+            }
+            cell.setCellValue(cellValue);
         }
     }
 

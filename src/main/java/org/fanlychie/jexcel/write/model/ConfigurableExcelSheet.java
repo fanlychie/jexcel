@@ -12,35 +12,60 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.InputStream;
 
 /**
+ * 可配置的EXCEL工作表, 用于加载YAML配置文件初始化配置
+ *
  * Created by fanlychie on 2018/3/14.
  */
 public class ConfigurableExcelSheet implements ExcelSheet {
 
-    private Class<?> dataClassType;
-
+    /**
+     * 配置文件流
+     */
     private InputStream configFileInputStream;
 
-    public ConfigurableExcelSheet(Class<?> dataClassType, String configFile) {
-        this.dataClassType = dataClassType;
+    /**
+     * 构造器
+     *
+     * @param configFile 类路径下的配置文件
+     */
+    public ConfigurableExcelSheet(String configFile) {
         this.configFileInputStream = ConfigurableExcelSheet.class.getResourceAsStream("/" + configFile);
     }
 
-    public ConfigurableExcelSheet(Class<?> dataClassType, InputStream configFileInputStream) {
-        this.dataClassType = dataClassType;
+    /**
+     * 构造器
+     *
+     * @param configFileInputStream 配置文件流
+     */
+    public ConfigurableExcelSheet(InputStream configFileInputStream) {
         this.configFileInputStream = configFileInputStream;
     }
 
     @Override
     public WritableSheet getWritableSheet() {
+        // 样式配置
         StyleConfig config = new Yaml().loadAs(configFileInputStream, StyleConfig.class);
-        WritableSheet sheet = new WritableSheet(dataClassType);
+        // 工作表
+        WritableSheet sheet = new WritableSheet();
+        // 单元格宽度
         sheet.setCellWidth(config.getGlobal().getCellWidth());
+        // 标题行样式
         sheet.setTitleRowStyle(createRowStyle(config.getTitleRow()));
+        // 主体行样式
         sheet.setBodyRowStyle(createRowStyle(config.getBodyRow()));
-        sheet.setFooterRowStyle(createRowStyle(config.getFootRow()));
+        // 脚部行样式
+        sheet.setFooterRowStyle(createRowStyle(config.getFooterRow()));
+        // 关键字映射表
+        sheet.setKeyMapping(config.getBodyRow().getKeyMapping());
         return sheet;
     }
 
+    /**
+     * 创建行样式
+     *
+     * @param config 配置对象
+     * @return RowStyle
+     */
     private RowStyle createRowStyle(RowStyleConfig config) {
         RowStyle rowStyle = new RowStyle();
         // 边框样式

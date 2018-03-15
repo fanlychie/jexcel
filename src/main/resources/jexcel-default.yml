@@ -12,7 +12,7 @@ bodyRow:
     startIndex: 1
     verticalAlign: CENTER
 # 底部行配置
-footRow:
+footerRow:
     format: STRING
     align: CENTER
     verticalAlign: CENTER

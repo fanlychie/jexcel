@@ -2,44 +2,56 @@ package org.fanlychie.jexcel;
 
 import org.fanlychie.jexcel.read.ReadableExcel;
 import org.fanlychie.jexcel.write.WritableExcel;
+import org.fanlychie.jexcel.write.model.ConfigurableExcelSheet;
 import org.fanlychie.jexcel.write.model.CustomExcelSheet;
 import org.fanlychie.jexcel.write.model.DefaultExcelSheet;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
 
 /**
- * Excel 执行器
+ * EXCEL帮助类
+ *
  * Created by fanlychie on 2017/3/5.
  */
 public final class ExcelHelper {
 
     /**
-     * 默认的布尔值字符串映射表
-     */
-    private static final Map<Boolean, String> DEFAULT_BOOLEAN_STRING_MAPPING = buildDefaultBooleanStringMapping();
-
-    /**
      * 获取一个可写的默认的EXCEL对象
      *
-     * @param dataClassType 填充工作表的数据类型
-     * @return 返回可写的 EXCEL对象
+     * @return 返回可写的EXCEL对象
      */
-    public static WritableExcel getDefaultWritableExcel(Class<?> dataClassType) {
-        return new WritableExcel(new DefaultExcelSheet(dataClassType))
-                .booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING);
+    public static WritableExcel getDefaultWritableExcel() {
+        return new WritableExcel(new DefaultExcelSheet());
     }
 
     /**
-     * 获取一个可写的默认的EXCEL对象
+     * 获取一个可写的自定义的EXCEL对象
      *
-     * @param dataClassType 填充工作表的数据类型
-     * @return 返回可写的 EXCEL对象
+     * @return 返回可写的EXCEL对象
      */
-    public static WritableExcel getCustomWritableExcel(Class<?> dataClassType) {
-        return new WritableExcel(new CustomExcelSheet(dataClassType))
-                .booleanStringMapping(DEFAULT_BOOLEAN_STRING_MAPPING);
+    public static WritableExcel getCustomWritableExcel() {
+        return new WritableExcel(new CustomExcelSheet());
+    }
+
+    /**
+     * 获取一个可写的自定义配置的EXCEL对象
+     *
+     * @param configFile 配置文件
+     * @return 返回可写的EXCEL对象
+     */
+    public static WritableExcel getConfigurableWritableExcel(String configFile) {
+        return new WritableExcel(new ConfigurableExcelSheet(configFile));
+    }
+
+    /**
+     * 获取一个可写的自定义配置的EXCEL对象
+     *
+     * @param configFileInputStream 配置文件
+     * @return 返回可写的EXCEL对象
+     */
+    public static WritableExcel getConfigurableWritableExcel(InputStream configFileInputStream) {
+        return new WritableExcel(new ConfigurableExcelSheet(configFileInputStream));
     }
 
     /**
@@ -60,16 +72,6 @@ public final class ExcelHelper {
      */
     public static ReadableExcel getReadableExcel(String excelFilePath) {
         return new ReadableExcel(excelFilePath).setStartRow(2);
-    }
-
-    /**
-     * 构建默认的布尔值字符串映射表
-     */
-    private static Map<Boolean, String> buildDefaultBooleanStringMapping() {
-        Map<Boolean, String> mapping = new HashMap<>();
-        mapping.put(true, "是");
-        mapping.put(false, "否");
-        return mapping;
     }
 
     /**

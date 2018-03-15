@@ -1,25 +1,45 @@
 package org.fanlychie.jexcel.write.model;
 
+import java.util.Map;
+
 /**
  * 样式配置
+ *
  * Created by fanlychie on 2018/3/14.
  */
 public class StyleConfig {
 
+    /**
+     * 全局配置
+     */
     private GlobalStyleConfig global;
 
+    /**
+     * 标题行配置
+     */
     private RowStyleConfig titleRow;
 
+    /**
+     * 主体行配置
+     */
     private RowStyleConfig bodyRow;
 
-    private RowStyleConfig footRow;
+    /**
+     * 脚部行配置
+     */
+    private RowStyleConfig footerRow;
 
     /**
      * 全局配置
      */
     public static class GlobalStyleConfig {
 
+        /**
+         * 单元格宽度
+         */
         private Integer cellWidth;
+
+        // ============== GETTERS AND SETTERS ====================
 
         public Integer getCellWidth() {
             return cellWidth;
@@ -36,25 +56,62 @@ public class StyleConfig {
      */
     public static class RowStyleConfig {
 
+        /**
+         * 起始索引, 从0开始
+         */
         private Integer startIndex;
 
+        /**
+         * 行高
+         */
         private Integer height;
 
+        /**
+         * 字体名称
+         */
         private String fontName;
 
+        /**
+         * 字体大小
+         */
         private Integer fontSize;
 
+        /**
+         * 字体颜色
+         */
         private String fontColor;
 
+        /**
+         * 是否自动换行
+         */
         private Boolean wrapText;
 
+        /**
+         * 背景颜色
+         */
         private String backgroundColor;
 
+        /**
+         * 水平方向对齐方式
+         */
         private String align;
 
+        /**
+         * 垂直方向对齐方式
+         */
         private String verticalAlign;
 
+        /**
+         * 单元格格式
+         */
         private String format;
+
+        /**
+         * 关键字映射
+         */
+        private Map<Object, Object> keyMapping;
+
+        // ============== GETTERS AND SETTERS ====================
 
         public void setStartIndex(Integer startIndex) {
             this.startIndex = startIndex;
@@ -135,7 +192,17 @@ public class StyleConfig {
         public void setFormat(String format) {
             this.format = format;
         }
+
+        public Map<Object, Object> getKeyMapping() {
+            return keyMapping;
+        }
+
+        public void setKeyMapping(Map<Object, Object> keyMapping) {
+            this.keyMapping = keyMapping;
+        }
     }
+
+    // ============== GETTERS AND SETTERS ====================
 
     public GlobalStyleConfig getGlobal() {
         return global;
@@ -161,12 +228,11 @@ public class StyleConfig {
         this.bodyRow = bodyRow;
     }
 
-    public RowStyleConfig getFootRow() {
-        return footRow;
+    public RowStyleConfig getFooterRow() {
+        return footerRow;
     }
 
-    public void setFootRow(RowStyleConfig footRow) {
-        this.footRow = footRow;
+    public void setFooterRow(RowStyleConfig footerRow) {
+        this.footerRow = footerRow;
     }
-
 }
