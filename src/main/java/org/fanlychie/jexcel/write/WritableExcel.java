@@ -14,10 +14,12 @@ import org.fanlychie.jexcel.write.model.SimpleCell;
 import org.fanlychie.jexcel.write.model.SimpleRow;
 import org.fanlychie.jreflect.BeanDescriptor;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
@@ -194,6 +196,28 @@ public class WritableExcel {
         try {
             sxssfWorkbook.write(os);
         } catch (Throwable e) {
+            throw new ExcelCastException(e);
+        }
+    }
+
+    /**
+     * 写出到客户端响应, 用于供客户端下载文件
+     *
+     * @param response HttpServletResponse
+     * @param filename 下载时存储的文件名称
+     */
+    public void toHttpResponse(HttpServletResponse response, String filename) {
+        try {
+            filename = new String(filename.getBytes("UTF-8"), "ISO-8859-1");
+        } catch (UnsupportedEncodingException e) {
+            throw new ExcelCastException(e);
+        }
+        response.reset();
+        response.setHeader("Content-Disposition", "attachment; filename=" + filename);
+        response.setContentType("application/octet-stream; charset=ISO-8859-1");
+        try {
+            sxssfWorkbook.write(response.getOutputStream());
+        } catch (IOException e) {
             throw new ExcelCastException(e);
         }
     }
