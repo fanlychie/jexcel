@@ -71,7 +71,7 @@ public class WritableExcel {
     /**
      * 构建实例
      *
-     * @param excelSheet    工作表
+     * @param excelSheet 工作表
      */
     public WritableExcel(ExcelSheet excelSheet) {
         this.writableSheet = excelSheet.getWritableSheet();
@@ -97,17 +97,27 @@ public class WritableExcel {
      * @return 返回当前对象
      */
     public WritableExcel addSheet(String sheetName, Collection<?> data) {
-        return addDataSheet(sheetName, data, true);
+        return addDataSheet(sheetName, data, true, true);
     }
 
     /**
-     * 添加一个工作表
+     * 追加到当前的工作表
      *
-     * @param data      数据列表
+     * @param data 数据列表
      * @return 返回当前对象
      */
     public WritableExcel appendSheet(Collection<?> data) {
-        return addDataSheet(null, data, false);
+        return addDataSheet(null, data, false, true);
+    }
+
+    /**
+     * 追加到当前的工作表, 只会追加数据不会构建标题行
+     *
+     * @param data 数据列表
+     * @return 返回当前对象
+     */
+    public WritableExcel appendData(Collection<?> data) {
+        return addDataSheet(null, data, false, false);
     }
 
     /**
@@ -167,7 +177,8 @@ public class WritableExcel {
             if (os != null) {
                 try {
                     os.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
             }
         }
     }
@@ -243,7 +254,7 @@ public class WritableExcel {
         return writableSheet.getFooterRowStyle();
     }
 
-    private WritableExcel addDataSheet(String sheetName, Collection<?> data, boolean isCreateSheet) {
+    private WritableExcel addDataSheet(String sheetName, Collection<?> data, boolean isCreateSheet, boolean isPrebuild) {
         try {
             if (isCreateSheet) {
                 // 创建工作表
@@ -259,7 +270,7 @@ public class WritableExcel {
                     cellFields = AnnotationHandler.parseClass(rowObj.getClass());
                     // 行样式
                     RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
-                    if (isCreateSheet) {
+                    if (isCreateSheet || isPrebuild) {
                         // 构建标题行
                         buildExcelTitleRow();
                         // 构建主体行样式
@@ -317,7 +328,8 @@ public class WritableExcel {
      */
     private void buildExcelTitleRow() throws Throwable {
         RowStyle rowStyle = writableSheet.getTitleRowStyle();
-        SXSSFRow row = sxssfSheet.createRow(rowStyle.getIndex());
+        int titleIndex = boundRowIndex == 0 ? rowStyle.getIndex() : boundRowIndex;
+        SXSSFRow row = sxssfSheet.createRow(titleIndex);
         if (rowStyle.getHeight() != null) {
             row.setHeightInPoints(rowStyle.getHeight());
         }
@@ -330,6 +342,7 @@ public class WritableExcel {
             cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
             cell.setCellValue(cellField.getName());
         }
+        ++boundRowIndex;
     }
 
     /**
@@ -385,17 +398,13 @@ public class WritableExcel {
     private void setCellValue(SXSSFCell cell, Object value, Class<?> type) {
         if (value == null) {
             cell.setCellValue("");
-        }
-        else if ((type == Boolean.TYPE || type == Boolean.class) && (keyMapping == null || !keyMapping.containsKey(value))) {
+        } else if ((type == Boolean.TYPE || type == Boolean.class) && (keyMapping == null || !keyMapping.containsKey(value))) {
             cell.setCellValue((boolean) value);
-        }
-        else if ((Number.class.isAssignableFrom(value.getClass()))) {
+        } else if ((Number.class.isAssignableFrom(value.getClass()))) {
             cell.setCellValue(Double.parseDouble(value.toString()));
-        }
-        else if (type == Date.class) {
+        } else if (type == Date.class) {
             cell.setCellValue((Date) value);
-        }
-        else {
+        } else {
             String cellValue = value.toString();
             if (keyMapping != null && keyMapping.containsKey(value)) {
                 cellValue = keyMapping.get(value).toString();
