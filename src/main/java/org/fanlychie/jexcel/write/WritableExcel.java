@@ -2,6 +2,7 @@ package org.fanlychie.jexcel.write;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.streaming.SXSSFCell;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
@@ -63,11 +64,6 @@ public class WritableExcel {
     private int boundRowIndex;
 
     /**
-     * 脚部的单元格样式
-     */
-    private CellStyle footerCellStyle;
-
-    /**
      * 关键字映射
      */
     private Map<Object, Object> keyMapping;
@@ -101,37 +97,17 @@ public class WritableExcel {
      * @return 返回当前对象
      */
     public WritableExcel addSheet(String sheetName, Collection<?> data) {
-        try {
-            // 创建工作表
-            sxssfSheet = sxssfWorkbook.createSheet(sheetName);
-            // 处理工作表数据
-            if (data != null) {
-                Iterator<?> iterator = data.iterator();
-                if (iterator.hasNext()) {
-                    // 行数据对象
-                    Object rowObj = iterator.next();
-                    // 边界索引
-                    boundRowIndex += data.size() + 1;
-                    // 单元格字段解析
-                    cellFields = AnnotationHandler.parseClass(rowObj.getClass());
-                    // 行样式
-                    RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
-                    // 构建标题行
-                    buildExcelTitleRow();
-                    // 构建主体行样式
-                    buildExcelBodyColumnStyle(bodyRowStyle);
-                    // 主体索引
-                    int bodyIndex = bodyRowStyle.getIndex();
-                    do {
-                        // 构建行数据
-                        buildExcelBodyRow(bodyRowStyle, bodyIndex++, rowObj);
-                    } while (iterator.hasNext() && (rowObj = iterator.next()) != null);
-                }
-            }
-            return this;
-        } catch (Throwable e) {
-            throw new ExcelCastException(e);
-        }
+        return addDataSheet(sheetName, data, true);
+    }
+
+    /**
+     * 添加一个工作表
+     *
+     * @param data      数据列表
+     * @return 返回当前对象
+     */
+    public WritableExcel appendSheet(Collection<?> data) {
+        return addDataSheet(null, data, false);
     }
 
     /**
@@ -141,7 +117,16 @@ public class WritableExcel {
      * @return 返回当前对象
      */
     public WritableExcel addRow(SimpleRow simpleRow) {
-        return addRow(simpleRow, null);
+        return addRow(simpleRow, null, false);
+    }
+
+    /**
+     * 添加一行空行
+     *
+     * @return 返回当前对象
+     */
+    public WritableExcel addEmptyRow() {
+        return addRow(null, null, true);
     }
 
     /**
@@ -151,7 +136,7 @@ public class WritableExcel {
      * @return 返回当前对象
      */
     public WritableExcel addFooterRow(SimpleRow simpleRow) {
-        return addRow(simpleRow, writableSheet.getFooterRowStyle());
+        return addRow(simpleRow, writableSheet.getFooterRowStyle(), false);
     }
 
     /**
@@ -231,23 +216,97 @@ public class WritableExcel {
         return writableSheet;
     }
 
-    private WritableExcel addRow(SimpleRow simpleRow, RowStyle rowStyle) {
-        if (boundRowIndex == 0) {
-            throw new IllegalStateException();
+    /**
+     * 获取标题行样式
+     *
+     * @return 返回标题行样式
+     */
+    public RowStyle getTitleRowStyle() {
+        return writableSheet.getTitleRowStyle();
+    }
+
+    /**
+     * 获取主体行样式
+     *
+     * @return 返回主体行样式
+     */
+    public RowStyle getBodyRowStyle() {
+        return writableSheet.getBodyRowStyle();
+    }
+
+    /**
+     * 获取脚部行样式
+     *
+     * @return 返回脚部行样式
+     */
+    public RowStyle getFooterRowStyle() {
+        return writableSheet.getFooterRowStyle();
+    }
+
+    private WritableExcel addDataSheet(String sheetName, Collection<?> data, boolean isCreateSheet) {
+        try {
+            if (isCreateSheet) {
+                // 创建工作表
+                sxssfSheet = sxssfWorkbook.createSheet(sheetName);
+            }
+            // 处理工作表数据
+            if (data != null) {
+                Iterator<?> iterator = data.iterator();
+                if (iterator.hasNext()) {
+                    // 行数据对象
+                    Object rowObj = iterator.next();
+                    // 单元格字段解析
+                    cellFields = AnnotationHandler.parseClass(rowObj.getClass());
+                    // 行样式
+                    RowStyle bodyRowStyle = writableSheet.getBodyRowStyle();
+                    if (isCreateSheet) {
+                        // 构建标题行
+                        buildExcelTitleRow();
+                        // 构建主体行样式
+                        buildExcelBodyColumnStyle(bodyRowStyle);
+                    }
+                    // 主体索引
+                    int bodyIndex = boundRowIndex == 0 ? bodyRowStyle.getIndex() : boundRowIndex;
+                    // 边界索引
+                    boundRowIndex += data.size();
+                    do {
+                        // 构建行数据
+                        buildExcelBodyRow(bodyRowStyle, bodyIndex++, rowObj);
+                    } while (iterator.hasNext() && (rowObj = iterator.next()) != null);
+                }
+            }
+            return this;
+        } catch (Throwable e) {
+            throw new ExcelCastException(e);
         }
-        boundRowIndex += simpleRow.getIndex();
-        SXSSFRow row = sxssfSheet.createRow(boundRowIndex++);
+    }
+
+    private WritableExcel addRow(SimpleRow simpleRow, RowStyle rowStyle, boolean isEmptyRow) {
+        if (sxssfSheet == null) {
+            sxssfSheet = sxssfWorkbook.createSheet(writableSheet.getName() + (sheetCount++));
+        }
+        SXSSFRow row = sxssfSheet.createRow(boundRowIndex);
         if (writableSheet.getBodyRowStyle().getHeight() != null) {
             row.setHeightInPoints(writableSheet.getBodyRowStyle().getHeight());
         }
-        List<SimpleCell> simpleCells = simpleRow.getSimpleCells();
-        for (SimpleCell simpleCell : simpleCells) {
-            SXSSFCell cell = row.createCell(simpleCell.getIndex());
-            setCellValue(cell, simpleCell.getValue(), simpleCell.getValue().getClass());
-            if (rowStyle != null) {
-                cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
+        if (!isEmptyRow) {
+            List<SimpleCell> simpleCells = simpleRow.getSimpleCells();
+            for (SimpleCell simpleCell : simpleCells) {
+                Integer rowspan = simpleCell.getRowspan();
+                Integer colspan = simpleCell.getColspan();
+                if (rowspan != null && colspan != null) {
+                    int cellIndex = simpleCell.getIndex();
+                    sxssfSheet.addMergedRegion(
+                            new CellRangeAddress(boundRowIndex, boundRowIndex + rowspan - 1, cellIndex, cellIndex + colspan - 1));
+                }
+                SXSSFCell cell = row.createCell(simpleCell.getIndex());
+                setCellValue(cell, simpleCell.getValue(), simpleCell.getValue().getClass());
+                if (rowStyle != null) {
+                    cell.setCellStyle(rowStyle.buildCellStyle(sxssfWorkbook));
+                }
             }
         }
+        ++boundRowIndex;
         return this;
     }
 
