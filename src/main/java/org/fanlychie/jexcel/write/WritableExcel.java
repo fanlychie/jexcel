@@ -257,6 +257,8 @@ public class WritableExcel {
     private WritableExcel addDataSheet(String sheetName, Collection<?> data, boolean isCreateSheet, boolean isPrebuild) {
         try {
             if (isCreateSheet) {
+                // 重置索引
+                boundRowIndex = 0;
                 // 创建工作表
                 sxssfSheet = sxssfWorkbook.createSheet(sheetName);
             }
@@ -398,13 +400,17 @@ public class WritableExcel {
     private void setCellValue(SXSSFCell cell, Object value, Class<?> type) {
         if (value == null) {
             cell.setCellValue("");
-        } else if ((type == Boolean.TYPE || type == Boolean.class) && (keyMapping == null || !keyMapping.containsKey(value))) {
+        }
+        else if ((type == Boolean.TYPE || type == Boolean.class) && (keyMapping == null || !keyMapping.containsKey(value))) {
             cell.setCellValue((boolean) value);
-        } else if ((Number.class.isAssignableFrom(value.getClass()))) {
+        }
+        else if ((Number.class.isAssignableFrom(value.getClass()))) {
             cell.setCellValue(Double.parseDouble(value.toString()));
-        } else if (type == Date.class) {
+        }
+        else if (type == Date.class) {
             cell.setCellValue((Date) value);
-        } else {
+        }
+        else {
             String cellValue = value.toString();
             if (keyMapping != null && keyMapping.containsKey(value)) {
                 cellValue = keyMapping.get(value).toString();
